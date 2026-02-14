@@ -150,6 +150,7 @@ void Player2_Bullets(GLdouble timeDiference)
     } 
 }
 
+
 /**
  * @brief Updates Player1 all Bullets.
  * @param timeDiference diferença de tempo milissegundo entre duas execuções da mesma função
@@ -169,6 +170,7 @@ void Player1_Bullets(GLdouble timeDiference)
         }
     } 
 }
+
 
 /**
  * @brief Updates Player2 based on pressed Keys.
@@ -300,6 +302,67 @@ void AnimatePlayers(GLdouble currentTime)
 
 
 /**
+ * @brief Renders Text.
+ * @param x Text X coordinate on the screen
+ * @param y Text Y coordinate on the screen
+ * @param z Text Z coordinate on the screen
+ * @param r Red color ranging 0-1
+ * @param g Green color ranging 0-1
+ * @param b Blue color ranging 0-1
+ * @param player Player to print
+ */
+void RasterChars(GLfloat x, GLfloat y, GLfloat z, const char * text, double r, double g, double b)
+{
+    //Push to recover original attributes
+    glPushAttrib(GL_ENABLE_BIT);
+        glDisable(GL_LIGHTING);
+        glDisable(GL_TEXTURE_2D);
+        //Draw text in the x, y, z position
+        glColor3f(r,g,b);
+        glRasterPos3f(x, y, z);
+        const char* tmpStr;
+        tmpStr = text;
+        while( *tmpStr )
+        {
+            glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *tmpStr);
+            tmpStr++;
+        }
+    glPopAttrib();
+}
+
+
+void PrintText(GLfloat x, GLfloat y, const char * text, double r, double g, double b)
+{
+    //Draw text considering a 2D space (disable all 3d features)
+    glMatrixMode (GL_PROJECTION);
+    //Push to recover original PROJECTION MATRIX
+    glPushMatrix();
+        glLoadIdentity();
+
+        // Peguei o glOrtho do Trabalho anterior
+        // Para não me preocupar com a conversão de nada
+        glOrtho(
+            -(VWidth/2),     // X coordinate of left edge             
+            (VWidth/2),     // X coordinate of right edge            
+            -(VHeight/2), //-(VHeight/2)     // Y coordinate of bottom edge            
+            (VHeight/2),// (VHeight/2)     // Y coordinate of top edge
+            -1,     // Z coordinate of the “near” plane            
+            1
+        );    // Z coordinate of the “far” plane
+        //glOrtho (0, 1, 0, 1, -1, 1);
+        // Salva e reseta a MODELVIEW para não ter que saber onde a câmera está
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+            glLoadIdentity();
+            RasterChars(x, y, 0, text, r, g, b);
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+
+    glPopMatrix();
+    glMatrixMode (GL_MODELVIEW);
+}
+
+/**
  * @brief Prints players score and which player won on the screen.
  * @param x Text X coordinate on the screen
  * @param y Text Y coordinate on the screen
@@ -307,23 +370,29 @@ void AnimatePlayers(GLdouble currentTime)
  */
 void ImprimePlacar(GLfloat x, GLfloat y, int player)
 {
+
     //Cria a string a ser impressa
-    static char *tmpStr;
-    if (game_winner == NO_PLAYER) sprintf(str, "P%d Health: %d",player, g_players[player-1].GetHealth());
+    double r = 1.0, g = 1.0, b = 1.0; 
+    if (game_winner == NO_PLAYER)
+    {
+        sprintf(str, "P%d Health: %d",player, g_players[player-1].GetHealth());
+        if (player == PLAYER1_ID)
+        {
+            r = 0.0; g = 1.0; b = 0.0;
+        }
+        else if (player == PLAYER2_ID)
+        {
+            r = 1.0; g = 0.0; b = 0.0;
+        }
+    }
     else if (game_winner == PLAYER1_WON) sprintf(str, "P%d Wins",PLAYER1_ID);
     else if (game_winner == PLAYER2_WON) sprintf(str, "P%d Wins",PLAYER2_ID);
     else if (game_winner == DRAW) sprintf(str, "Draw");
-    
+
     //Define a cor e posicao onde vai comecar a imprimir
-    glColor3f(1.0, 1.0, 1.0);
-    glRasterPos2f(x, y);
-    //Imprime um caractere por vez
-    tmpStr = str;
-    while( *tmpStr ){
-        glutBitmapCharacter(font, *tmpStr);
-        tmpStr++;
-    }
+    PrintText(x, y, str, r,g,b); 
 }
+
 
 
 /**
@@ -331,16 +400,19 @@ void ImprimePlacar(GLfloat x, GLfloat y, int player)
  */
 void renderScene(void)
 {
-  /**/  // Clear the screen.
+    // Clear the screen.
+    glClearColor(0.0,0.0,0.0,1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glLoadIdentity();
+    glLoadIdentity();
 
         //g_arena.DrawArena();
 
         //CAMERA TEMPORARIA PRA TESTAR
-        gluLookAt(0, -g_arena.GetRadius()*2.5, g_arena.GetRadius()*1.5, 
-              0, 0, 0, 
-              0, 0, 1);
+        gluLookAt(
+            0, -g_arena.GetRadius()*2.5, g_arena.GetRadius()*1.5, 
+            0, 0, 0, 
+            0, 0, 1
+        );
 
         glColor3f(g_arena.GetRGB().GetR(), g_arena.GetRGB().GetG(), g_arena.GetRGB().GetB());
         GLUquadricObj *quadric = gluNewQuadric();
@@ -521,6 +593,7 @@ void keyup(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+
 /**
  * @brief Reset Key Status
  */
@@ -583,7 +656,7 @@ void gl_init(void)
             -100,     // Z coordinate of the “near” plane            
             100);    // Z coordinate of the “far” plane*/
     glLoadIdentity();
-    gluPerspective(45.0, (float)Width/(float)Height, 1.0, 1000.0);
+    gluPerspective(45.0, (float)Width/(float)Height, 1.0, 2000.0);
     glMatrixMode(GL_MODELVIEW); // Select the projection matrix    
     glLoadIdentity();
       
