@@ -229,10 +229,11 @@ void ArenaPlayer::Shoot()
             this->gun_yaw,
             0,0,1
         );
+        // Center bullet on the gun
         glTranslatef(
-            0,
-            this->GetRadius()*ARM_HEIGHT_MULTIPLER+ this->GetRadius()*BULLET_RADIUS_SCALER,
-            0
+            this->GetRadius()*ARM_WIDTH_MULTIPLER/2,
+            this->GetRadius()*ARM_HEIGHT_MULTIPLER + this->GetRadius()*BULLET_RADIUS_SCALER,
+            -this->GetRadius()*ARM_WIDTH_MULTIPLER/2
         );
         
         // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glGet.xml

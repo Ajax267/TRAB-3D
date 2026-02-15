@@ -175,3 +175,10 @@ void vector_3d_difference(float a[3], float b[3], float out[3])
     out[1] = a[1] - b[1];
     out[2] = a[2] - b[2];
 }
+
+void dot_product_3d(float a[3], float b[3], float out[3])
+{
+    out[0] = a[0]*b[0];
+    out[1] = a[1]*b[1];
+    out[2] = a[2]*b[2];
+}
