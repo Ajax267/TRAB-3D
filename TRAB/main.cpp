@@ -102,14 +102,50 @@ float gCurrentGameMouseY = 0;
 float gPastGameMouseX = 0;
 float gPastGameMouseY = 0;
 
+// Camera Modes
+
 //Enable Spectator Mode
 int camera_spectator_mode = 0;
+int toggle_player_camera = 0;
 
 // Camera movement
-float camera_coords[3] = {0.0,2.0,5.0};
+float camera_coords[3] = {0.0,0.0,0.0};
 float look_camera_coords[3] = {0.0,0.0,0.0};
+float old_look_camera_coords[3] = {0.0,0.0,0.0};
+float camera_up_vec[3] = {0.0,0.0,0.0};
 float camXZAngle = 0;
 float camXYAngle = 0;
+
+
+void init_player1_camera(void)
+{
+    camera_coords[0] = g_players[0].GetPosition().GetX(); 
+    camera_coords[1] = -g_players[0].GetPosition().GetY();
+    camera_coords[2] = g_players[0].GetPosition().GetZ() + PLAYER_HEIGHT;
+
+    // float center_start[3] = {0.0,0.0,0.0};
+    // vector_3d_difference(center_start,camera_coords,look_camera_coords);
+    // normalize_3d(look_camera_coords);
+
+    // camXYAngle = asin( look_camera_coords[1] ) * 180.0/M_PI;
+    // camXZAngle = atan2( look_camera_coords[0], -look_camera_coords[2] ) * 180.0/M_PI;
+}
+
+
+void init_arena_camera(void)
+{
+    camera_coords[0] = 0; 
+    camera_coords[1] = -400;//-g_arena.GetRadius()*2.5; -400,400
+    camera_coords[2] =  400;//g_arena.GetRadius()*1.5;
+
+    float center_start[3] = {0.0,0.0,0.0};
+    vector_3d_difference(center_start,camera_coords,look_camera_coords);
+    normalize_3d(look_camera_coords);
+
+    camXYAngle = asin( look_camera_coords[1] ) * 180.0/M_PI;
+    camXZAngle = atan2( look_camera_coords[0], -look_camera_coords[2] ) * 180.0/M_PI;
+}
+
 
 /**
  * @brief Updates Mouse coordinates.
@@ -125,18 +161,39 @@ void globalmouseMotion(int x, int y)
 
     if (RightMouseButton == RIGHT_CLICK && RightMouseState == MOUSE_PRESSED &&  camera_spectator_mode)
     {
-        camXZAngle -= (gCurrentMouseX - gPastMouseX);
-        camXYAngle += (gCurrentMouseY - gCurrentMouseY);
-
-        if(camXYAngle > 89.0)  camXYAngle = 89.0;
-        if(camXYAngle < -89.0) camXYAngle = -89.0;
-
-        if(camXZAngle > 89.0)  camXYAngle = 89.0;
-        if(camXZAngle < -89.0) camXYAngle = -89.0;
         
-        look_camera_coords[0] = cos(camXYAngle * M_PI/180.0) * sin(camXZAngle * M_PI/180.0);
+        camXZAngle -= (gCurrentMouseX - gPastMouseX) * 50;
+        camXYAngle += (gCurrentMouseY - gPastMouseY) * 50;
+
+        // // camXYAngle= 0;
+        // if(camXYAngle > 180.0)  camXYAngle = 180.0;
+        // if(camXYAngle < -180.0) camXYAngle = -180.0;
+
+        // // camXZAngle= 0;
+        // if(camXZAngle > 170.0)  camXYAngle = 170.0;
+        // if(camXZAngle < -170.0) camXYAngle = -170.0;
+        
+        look_camera_coords[0] = -cos(camXYAngle * M_PI/180.0) * sin(camXZAngle * M_PI/180.0);
         look_camera_coords[1] = sin(camXYAngle * M_PI/180.0);
         look_camera_coords[2] = -cos(camXYAngle * M_PI/180.0) * cos(camXZAngle * M_PI/180.0);
+
+
+        float anti_up_look[3] = {0.0,0.0,0.0};
+        dot_product_3d(look_camera_coords,camera_up_vec,anti_up_look);
+        if ( (anti_up_look[0]*anti_up_look[0] + 
+              anti_up_look[1]*anti_up_look[1] +
+              anti_up_look[2]*anti_up_look[2]) == 0)
+        {
+            look_camera_coords[0] = old_look_camera_coords[0];
+            look_camera_coords[1] = old_look_camera_coords[1];
+            look_camera_coords[2] = old_look_camera_coords[2];
+        }
+        else
+        {
+            old_look_camera_coords[0] = look_camera_coords[0];
+            old_look_camera_coords[1] = look_camera_coords[1];
+            old_look_camera_coords[2] = look_camera_coords[2];
+        }
 
         glutPostRedisplay();
     }
@@ -273,7 +330,7 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
     //Treat keyPress
     if(keyStatus[(int)('w')])
     {
-        // printf("Cliquei W\n");
+        // printf("Jogador Andando\n");
         p1.Move(g_arena,g_obstacles,g_players,timeDiference);
     }
     if(keyStatus[(int)('s')])
@@ -467,6 +524,19 @@ void ImprimePlacar(GLfloat x, GLfloat y, int player)
 }
 
 
+
+void PrintVectors()
+{
+    printf("Up : (%.4f, %.4f, %.4f)\n",
+           camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+
+    printf("Forward : (%.4f, %.4f, %.4f)\n",
+           look_camera_coords[0], look_camera_coords[1], look_camera_coords[2]);
+
+    printf("------------------------------\n");
+}
+
+
 /**
  * @brief Renders OpenGL images.
  */
@@ -478,20 +548,47 @@ void renderScene(void)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         //gluLookAt(0,-400,400, 0,0,0, 0,1,0);
-        gluLookAt(
-            camera_coords[0],
-            camera_coords[1],
-            camera_coords[2],
-            camera_coords[0] + look_camera_coords[0],
-            camera_coords[1] + look_camera_coords[1],
-            camera_coords[2] + look_camera_coords[2],
-            0,1,0
-        );
+        if (!toggle_player_camera)
+        {
+            
+            gluLookAt(
+                camera_coords[0],
+                camera_coords[1],
+                camera_coords[2],
+                camera_coords[0] + look_camera_coords[0],
+                camera_coords[1] + look_camera_coords[1],
+                camera_coords[2] + look_camera_coords[2],
+                camera_up_vec[0],camera_up_vec[1],camera_up_vec[2]
+            );
+        }
+        else
+        {
+            init_player1_camera();
+            // Testing Player 1 Camera
+            gluLookAt(
+                camera_coords[0],
+                camera_coords[1],
+                camera_coords[2] + PLAYER_HEIGHT ,
+                camera_coords[0] - g_players[0].GetDirection().GetX(), 
+                camera_coords[1] + g_players[0].GetDirection().GetY(),
+                camera_coords[2] + g_players[0].GetDirection().GetZ() + PLAYER_HEIGHT ,
+                camera_up_vec[0],camera_up_vec[1],camera_up_vec[2]
+            );
+
+            // g_players[0].GetDirection().PrintAttributes();
+            // printf("\n------------ CAMERA DEBUG ------------\n");
+
+            // printf(" camera_coords : (%.4f, %.4f, %.4f)\n", camera_coords[0], camera_coords[1], camera_coords[2]);
+            // printf(" player_direction : (%.4f, %.4f, %.4f)\n", g_players[0].GetDirection().GetX(), g_players[0].GetDirection().GetY(), g_players[0].GetDirection().GetZ());
+            // printf(" center  : (%.4f, %.4f, %.4f)\n", camera_coords[0] - g_players[0].GetDirection().GetX(), camera_coords[1] + g_players[0].GetDirection().GetY(), g_players[0].GetDirection().GetZ()  + PLAYER_HEIGHT );
+            // printf(" up : (%.4f, %.4f, %.4f)\n", camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+
+        }
     
         // GLfloat light_position[] = { light_x, light_y, light_z, 1.0 };
         // glLightfv(  GL_LIGHT0, GL_POSITION, light_position);
 
-        //DrawAxes(200);
+        DrawAxes(100);
 
         g_arena.DrawArena();
 
@@ -518,19 +615,27 @@ void renderScene(void)
         }
         else ImprimePlacar(-VWidth*0.05,VHeight*0, game_winner); 
 
+        // PrintVectors();
+
     glutSwapBuffers(); // Desenha the new frame of the game.
 }
 
 
 void init_camera_direction_vector(void)
 {
-    camera_coords[0] = 0; 
-    camera_coords[1] = -400;//-g_arena.GetRadius()*2.5; -400,400
-    camera_coords[2] =  400;//g_arena.GetRadius()*1.5;
+    init_arena_camera();
 
-    float center_start[3] = {0.0,0.0,0.0};
-    vector_3d_difference(center_start,camera_coords,(float*)look_camera_coords);
-    normalize_3d(look_camera_coords);
+    // camXZAngle = asin( look_camera_coords[2] ) * 180.0/M_PI;
+    // camXYAngle   = atan2( look_camera_coords[1],look_camera_coords[0] ) * 180.0/M_PI;
+
+    old_look_camera_coords[0] = look_camera_coords[0];
+    old_look_camera_coords[1] = look_camera_coords[1];
+    old_look_camera_coords[2] = look_camera_coords[2];
+
+    camera_up_vec[0] = 0.0;
+    camera_up_vec[1] = 0.0;
+    camera_up_vec[2] = 1.0;
+
 }
 
 
@@ -540,8 +645,9 @@ void init_camera_direction_vector(void)
 void init_game(void)
 {
     // Record Last Positions before start
-    // Setting Up Character to look at each othe
+    // Setting Up Character to look at each other
 
+    printf("Reiniciei o game\n");
     game_winner = NO_PLAYER;
     if (first_start)
     {
@@ -614,6 +720,12 @@ void keyPress(unsigned char key, int x, int y)
             camera_spectator_mode = !camera_spectator_mode;
             break;
         
+        case '2':
+            toggle_player_camera = !toggle_player_camera;
+            if (toggle_player_camera) init_player1_camera();
+            else init_arena_camera();
+            break;
+        
         //------------------Player 1------------------//
         case 'w':
         case 'W':
@@ -659,7 +771,7 @@ void keyPress(unsigned char key, int x, int y)
             keyStatus[(int)('6')] = 1; //Using keyStatus trick
             break;
 
-        //------------------Player 2------------------//
+        //------------------Game------------------//
         case 'r':
         case 'R':
             init_game();
