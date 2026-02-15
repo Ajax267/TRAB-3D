@@ -1,8 +1,5 @@
 #include "arena_obstacles.h"
 
-#define CIRCULAR_OBSTACLE_HEIGHT 20
-#define CIRCULAR_OBSTACLE_RES 32 
-
 void CircularObstacle::DrawObstacle()
 {
     glPushMatrix();
@@ -13,7 +10,7 @@ void CircularObstacle::DrawObstacle()
         );
         DrawCilinder(
             this->GetRadius(),
-            CIRCULAR_OBSTACLE_HEIGHT,
+            this->GetHeight(),
             this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
             CIRCULAR_OBSTACLE_RES
         );

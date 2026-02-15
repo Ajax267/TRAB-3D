@@ -86,7 +86,13 @@ bool Bullet::ObstacleCollision(CircularArena& arena, std::vector<CircularObstacl
             double limit = obstacle.GetRadius() + this->Hitbox();
             if ( player_distance_from_obstacle_center <= limit*limit )
             {
-                return true;
+                if (
+                    this->GetPosition().GetZ() >= obstacle.GetPosition().GetZ() &&
+                    this->GetPosition().GetZ() <= obstacle.GetHeight()
+                )
+                {
+                    return true;
+                }
             }
         }
     }
@@ -113,8 +119,14 @@ bool Bullet::PlayerCollision(CircularArena& arena, std::vector<ArenaPlayer>& pla
             double limit = current_player.Hitbox() + this->Hitbox();
             if (bullet_distance_from_current_player <= limit * limit)
             {
-                current_player.GotHit();
-                return true;
+                if (
+                    this->GetPosition().GetZ() >= current_player.GetPosition().GetZ() &&
+                    this->GetPosition().GetZ() <= current_player.GetHeight()
+                )
+                {
+                    current_player.GotHit();
+                    return true;
+                }                
             }
         }
     }

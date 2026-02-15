@@ -1,7 +1,4 @@
-#include "arena.h"
-
-#define CIRCULAR_ARENA_HEIGHT 20
-#define CIRCULAR_ARENA_RES 32 
+#include "arena.h" 
 
 void CircularArena::DrawArena()
 {
@@ -9,11 +6,11 @@ void CircularArena::DrawArena()
         glTranslatef(
             this->GetPosition().GetX(),
             -this->GetPosition().GetY(),
-            -CIRCULAR_ARENA_HEIGHT
+            -this->GetHeight()
         );
         DrawCilinder(
             this->GetRadius(),
-            CIRCULAR_ARENA_HEIGHT,
+            this->GetHeight(),
             this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
             CIRCULAR_ARENA_RES
         );
