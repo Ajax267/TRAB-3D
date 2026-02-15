@@ -21,6 +21,7 @@
 #define SPECIAL_KEY 231 // isso é para o 'ç'
 #define CAPS_SPECIAL_KEY 199 // isso é para o 'ç
 #define ESC_KEY 27
+#define SPACE_BAR 32
 
 #define LEFT_CLICK 0
 #define RIGHT_CLICK 1
@@ -30,6 +31,7 @@
 #define TIME_S 0.001
 #define LEG_ANIMATION_DELAY_MS 350.0
 #define WEAPON_FIRERATE 200.0
+#define JUMP_DELAY 3.0
 
 // Nos PCs do LabGradII 'MOUSE_SENSITIVY 2.0' estava muito alto
 #define MOUSE_SENSITIVY 1.0
@@ -116,6 +118,9 @@ float camera_up_vec[3] = {0.0,0.0,0.0};
 float camXZAngle = 0;
 float camXYAngle = 0;
 
+//Disable Features
+int toggle_light = 0;
+int toggle_texture = 0;
 
 void init_player1_camera(void)
 {
@@ -294,11 +299,17 @@ void Player2_Keys(GLdouble timeDiference, GLdouble currentTime)
     }
     if(keyStatus[(int)('k')])
     {
-        p2.Rotate(timeDiference);
+        if (!keyStatus[(int)'.'] && !p2.GetJumpDecay())
+        {
+            p2.Rotate(timeDiference);
+        }
     }
     if(keyStatus[SPECIAL_KEY])
     {
-        p2.Rotate(-timeDiference);
+        if (!keyStatus[(int)'.'] && !p2.GetJumpDecay())
+        {
+            p2.Rotate(-timeDiference);
+        }
     }
     if (keyStatus[(int)('5')] && 
         (currentTime-last_time_player_shoot[1]) > WEAPON_FIRERATE
@@ -316,6 +327,13 @@ void Player2_Keys(GLdouble timeDiference, GLdouble currentTime)
     {
         p2.RotateGun(-timeDiference);
     }
+
+    p2.IncreaseHeight(timeDiference,keyStatus[SPACE_BAR]);
+
+    // Queria fazer genérico, mas vai ficar hardcoded como jogador 2 
+    // Porque estamos sem tempo
+    ArenaPlayer p1 = g_players[0];
+    p2.DecreaseHeight(timeDiference,p1);
 }
 
 
@@ -339,11 +357,17 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
     }
     if(keyStatus[(int)('a')])
     {
-        p1.Rotate(timeDiference);
+        if (!keyStatus[SPACE_BAR] && !p1.GetJumpDecay())
+        {
+            p1.Rotate(timeDiference);
+        }
     }
     if(keyStatus[(int)('d')])
     {
-        p1.Rotate(-timeDiference);
+        if (!keyStatus[SPACE_BAR] && !p1.GetJumpDecay())
+        {
+            p1.Rotate(-timeDiference);
+        }
     }
     if (LeftMouseButton == LEFT_CLICK && LeftMouseState == MOUSE_PRESSED && 
         (currentTime-last_time_player_shoot[0]) > WEAPON_FIRERATE
@@ -384,6 +408,12 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
         p1.RotateGun(-timeDiference * MOUSE_SENSITIVY);
     }
 
+    p1.IncreaseHeight(timeDiference,keyStatus[(int)'.']);
+
+    // Queria fazer genérico, mas vai ficar hardcoded como jogador 2 
+    // Porque estamos sem tempo
+    ArenaPlayer p2 = g_players[1];
+    p1.DecreaseHeight(timeDiference,p2);
 }
 
 
@@ -524,7 +554,6 @@ void ImprimePlacar(GLfloat x, GLfloat y, int player)
 }
 
 
-
 void PrintVectors()
 {
     printf("Up : (%.4f, %.4f, %.4f)\n",
@@ -536,6 +565,34 @@ void PrintVectors()
     printf("------------------------------\n");
 }
 
+
+void DrawArenaLights()
+{
+    GLfloat height = 250.0;
+
+    // Center
+    GLfloat light_position_center[] = { 0.0, (GLfloat) g_arena.GetPosition().GetY(), height, 1.0 };
+    glLightfv( GL_LIGHT0, GL_POSITION, light_position_center);
+
+    // Edges
+
+    // // Y
+    // GLfloat light_position_edge1[] = { 0.0, (GLfloat) (g_arena.GetRadius() -g_arena.GetPosition().GetY()), height, 1.0 };
+    // glLightfv( GL_LIGHT1, GL_POSITION, light_position_edge1);
+    // GLfloat light_position_edge2[] = { 0.0, (GLfloat) -(g_arena.GetRadius() + g_arena.GetPosition().GetY()), height, 1.0 };
+    // glLightfv( GL_LIGHT2, GL_POSITION, light_position_edge2);
+
+    // // // X
+    // GLfloat light_position_edge3[] = {(GLfloat) g_arena.GetRadius(), (GLfloat) -g_arena.GetPosition().GetY(), height, 1.0 };
+    // glLightfv( GL_LIGHT3, GL_POSITION, light_position_edge3);
+    // GLfloat light_position_edge4[] = { (GLfloat) -g_arena.GetRadius(), (GLfloat) -g_arena.GetPosition().GetY(), height, 1.0 };
+    // glLightfv( GL_LIGHT4, GL_POSITION, light_position_edge4);
+
+    // printf("\n========= LIGHT DEBUG =========\n");
+    // printf("Arena Radius : %.4f\n", g_arena.GetRadius());
+    // printf("Arena Pos Y  : %.4f\n", g_arena.GetPosition().GetY());
+
+}
 
 /**
  * @brief Renders OpenGL images.
@@ -584,10 +641,9 @@ void renderScene(void)
             // printf(" up : (%.4f, %.4f, %.4f)\n", camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
 
         }
-    
-        // GLfloat light_position[] = { light_x, light_y, light_z, 1.0 };
-        // glLightfv(  GL_LIGHT0, GL_POSITION, light_position);
 
+        DrawArenaLights();
+    
         DrawAxes(100);
 
         g_arena.DrawArena();
@@ -647,7 +703,7 @@ void init_game(void)
     // Record Last Positions before start
     // Setting Up Character to look at each other
 
-    printf("Reiniciei o game\n");
+    // printf("Reiniciei o game\n");
     game_winner = NO_PLAYER;
     if (first_start)
     {
@@ -726,6 +782,12 @@ void keyPress(unsigned char key, int x, int y)
             else init_arena_camera();
             break;
         
+        case '3':
+            toggle_light = !toggle_light;
+            if (toggle_light) glEnable(GL_LIGHTING);
+            else glDisable(GL_LIGHTING);
+            break;
+  
         //------------------Player 1------------------//
         case 'w':
         case 'W':
@@ -742,6 +804,10 @@ void keyPress(unsigned char key, int x, int y)
         case 'd':
         case 'D':
             keyStatus[(int)('d')] = 1; //Using keyStatus trick
+            break;
+        
+        case SPACE_BAR: // Barra de espaço
+            keyStatus[SPACE_BAR] = 1;
             break;
 
         //------------------Player 2------------------//
@@ -853,8 +919,14 @@ void gl_init(void)
     //glShadeModel (GL_FLAT);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_CULL_FACE);
-    // glEnable(GL_LIGHTING);
-    // glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHTING);
+
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+    glEnable(GL_LIGHT2);
+    glEnable(GL_LIGHT3);
+    glEnable(GL_LIGHT4);
+
     glEnable(GL_DEPTH_TEST);
     glViewport (
         0,
@@ -883,7 +955,8 @@ void gl_init(void)
     //         100);    // Z coordinate of the “far” plane
     // glMatrixMode(GL_MODELVIEW); // Select the projection matrix    
     // glLoadIdentity();
-      
+    toggle_light = !toggle_light;
+    toggle_texture = !toggle_texture;
 }
 
 

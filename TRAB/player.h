@@ -19,6 +19,7 @@
 #define PLAYER_HEALTH 3
 
 #define PLAYER_HEIGHT 10
+#define OBSTACLE_HEIGHT PLAYER_HEIGHT
 #define PLAYER_RES 10
 
 #define BULLET_VEL (PLAYER_SPEED*2.0)
@@ -36,6 +37,12 @@
 #define LEFT_LEG_ID 1
 #define RIGHT_LEG_ID 2
 
+#define JUMP_DECAY_ARENA 0
+#define JUMP_DECAY_OBSTACLE 1
+#define JUMP_DECAY_PLAYER 2
+#define MAX_JUMP_HEIGHT PLAYER_HEIGHT*2
+
+
 class Bullet; // forward declaration
 
 class ArenaPlayer : public CircularEntityDefinition
@@ -49,6 +56,12 @@ class ArenaPlayer : public CircularEntityDefinition
         int _id;
         short _last_leg_id = LEFT_LEG_ID;
         bool is_leg_rotated = false;
+        float height = PLAYER_HEIGHT;
+        bool on_obstacle = false;
+        bool on_player = false;
+        float current_jump_height = 0;
+        bool jump_decay = false;
+        short jump_decay_type = JUMP_DECAY_ARENA;
         
     public:
         ArenaPlayer()
@@ -86,6 +99,8 @@ class ArenaPlayer : public CircularEntityDefinition
         void Shoot();
         void GotHit() { this->health--;};
         bool IsMoving();
+        void IncreaseHeight(GLdouble timeDiference,int jump_button_status);
+        void DecreaseHeight(GLdouble timeDiference, ArenaPlayer player);
 
         // Collions Check
         double SquareDistanceTo(double x, double y);
@@ -112,6 +127,12 @@ class ArenaPlayer : public CircularEntityDefinition
         int& GetID() {return this->_id;};
         void SetLastAnimationAttemptPosition(PositionDefinition pos)
             {this->last_animation_attempt_position = pos;};
+
+        const float& GetHeight() const {return this->height;};
+        void SetHeight(float height) {this->height=height;};
+
+        const bool& GetJumpDecay() const {return this->jump_decay;};
+
 };
 
 #endif

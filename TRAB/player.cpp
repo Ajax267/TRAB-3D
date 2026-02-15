@@ -111,7 +111,7 @@ void ArenaPlayer::DrawPlayer()
         glTranslatef(
             this->GetPosition().GetX(),
             -this->GetPosition().GetY(),
-            0
+            this->GetPosition().GetZ()
         );
         glRotatef(
             this->GetOrientation().GetYaw(),
@@ -172,14 +172,22 @@ void ArenaPlayer::Move(
     this->GetPosition().SetY(
         this->GetPosition().GetY() + this->GetVelocity().GetVy() * timeDiference
     );
-    
-    if ( this->ArenaCollision(arena) || 
-         this->ObstacleCollision(arena,obstacles_vec) || 
-         this->PlayerCollision(arena,player_vec)
-    )
+
+    bool arena_c = this->ArenaCollision(arena);
+    bool object_c = this->ObstacleCollision(arena,obstacles_vec);
+    bool player_c = this->PlayerCollision(arena,player_vec);
+    if ( arena_c || object_c || player_c )
     {
         this->GetPosition() = this->GetLastPosition();
     }
+
+    //Hierarquia dos pulos
+    this->jump_decay_type = JUMP_DECAY_ARENA;
+    if ( this->on_obstacle ) this->jump_decay_type = JUMP_DECAY_OBSTACLE;
+    if ( this->on_player ) this->jump_decay_type = JUMP_DECAY_PLAYER;
+
+    // printf("jump_decay_type : %d\n",jump_decay_type);
+
 }
 
 
@@ -214,7 +222,7 @@ void ArenaPlayer::Shoot()
         glTranslatef(
             this->GetPosition().GetX(),
             -this->GetPosition().GetY(),
-            0
+            this->GetPosition().GetZ()
         );
         glRotatef(
             this->GetOrientation().GetYaw(),
@@ -231,7 +239,7 @@ void ArenaPlayer::Shoot()
         );
         // Center bullet on the gun
         glTranslatef(
-            this->GetRadius()*ARM_WIDTH_MULTIPLER/2,
+            (this->GetRadius()*ARM_WIDTH_MULTIPLER - this->GetRadius()*BULLET_RADIUS_SCALER)/2 ,
             this->GetRadius()*ARM_HEIGHT_MULTIPLER + this->GetRadius()*BULLET_RADIUS_SCALER,
             -this->GetRadius()*ARM_WIDTH_MULTIPLER/2
         );
@@ -275,6 +283,66 @@ void ArenaPlayer::Shoot()
 }
 
 
+void ArenaPlayer::IncreaseHeight(GLdouble timeDiference, int jump_button_status)
+{
+    // printf("passe aqui 0\n");
+    if (!jump_button_status) this->jump_decay = true; //Ativa a queda se solta o botão do pulo
+    
+    if (!this->jump_decay) 
+    {
+        // printf("passe aqui 1\n");
+        float jump_delta = MAX_JUMP_HEIGHT * timeDiference;
+        this->current_jump_height += jump_delta;
+        this->GetPosition().SetZ( this->GetPosition().GetZ() + jump_delta);
+    }
+    if (this->current_jump_height >= MAX_JUMP_HEIGHT)
+    {
+        // printf("passe aqui 2\n");
+        this->current_jump_height = MAX_JUMP_HEIGHT;
+        this->jump_decay = true; //Ativa a queda se a altura de pulo máximo é atinginda
+    }
+}
+
+
+void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
+{
+    float current_z = this->GetPosition().GetZ();
+
+    if (this->jump_decay)
+    {
+        current_z -= MAX_JUMP_HEIGHT * timeDiference;
+        if (jump_decay_type == JUMP_DECAY_ARENA)
+        {
+            if (current_z <= 0) 
+            {
+                current_z= 0;
+                this->jump_decay = false;
+                this->current_jump_height=0.0;
+            }
+        }
+        else if (jump_decay_type == JUMP_DECAY_OBSTACLE)
+        {
+            if (current_z <= OBSTACLE_HEIGHT) 
+            {
+                current_z = OBSTACLE_HEIGHT;
+                this->jump_decay = false;
+                this->current_jump_height=0.0;
+            }
+        }
+        else if (jump_decay_type == JUMP_DECAY_PLAYER)
+        {
+            if (current_z <= player.GetPosition().GetZ() + PLAYER_HEIGHT) 
+            {
+                current_z = player.GetPosition().GetZ() + PLAYER_HEIGHT;
+                this->jump_decay = false;
+                this->current_jump_height=0.0;
+            }
+        }
+        this->GetPosition().SetZ(current_z);
+    }
+}
+
+
 //----------Collision------------//
 
 
@@ -286,6 +354,7 @@ double ArenaPlayer::SquareDistanceTo(double x, double y)
     return (dx*dx + dy*dy);
 }
 
+
 bool ArenaPlayer::InArena(CircularArena& arena)
 {
     return (
@@ -293,6 +362,7 @@ bool ArenaPlayer::InArena(CircularArena& arena)
         <= arena.GetRadius()*arena.GetRadius()
     );
 }
+
 
 bool ArenaPlayer::ArenaCollision(CircularArena& arena)
 {
@@ -312,6 +382,7 @@ bool ArenaPlayer::ArenaCollision(CircularArena& arena)
     return false;
 }
 
+
 // Obstacles should only exist inside the Arena
 bool ArenaPlayer::ObstacleCollision(CircularArena& arena, std::vector<CircularObstacle>& obstacles_vec)
 {
@@ -326,7 +397,16 @@ bool ArenaPlayer::ObstacleCollision(CircularArena& arena, std::vector<CircularOb
             double limit = obstacle.GetRadius() + this->Hitbox();
             if ( player_distance_from_obstacle_center <= limit*limit )
             {
-                return true;
+                if (
+                    this->GetPosition().GetZ() >= obstacle.GetPosition().GetZ() &&
+                    this->GetPosition().GetZ() < obstacle.GetHeight()
+                )
+                {
+                    return true;
+                }
+
+                this->on_obstacle = true;
+                return false;
             }
         }
     }
@@ -335,8 +415,10 @@ bool ArenaPlayer::ObstacleCollision(CircularArena& arena, std::vector<CircularOb
         return true; //Player somehow escaped the arena ??? useful for debug I imagine
     }
 
+    this->on_obstacle = false;
     return false;
 }
+
 
 bool ArenaPlayer::PlayerCollision(CircularArena& arena, std::vector<ArenaPlayer>& players_vec)
 {
@@ -353,7 +435,16 @@ bool ArenaPlayer::PlayerCollision(CircularArena& arena, std::vector<ArenaPlayer>
             double limit = current_player.Hitbox() + this->Hitbox();
             if (player_distance_from_current_player <= limit * limit)
             {
-                return true;
+                if (
+                    this->GetPosition().GetZ() >= current_player.GetPosition().GetZ() &&
+                    this->GetPosition().GetZ() < current_player.GetHeight()
+                )
+                {
+                    return true;
+                }
+
+                this->on_player = true;
+                return false;
             }
         }
     }
@@ -362,5 +453,6 @@ bool ArenaPlayer::PlayerCollision(CircularArena& arena, std::vector<ArenaPlayer>
         return true; //Player somehow escaped the arena ??? useful for debug I imagine
     }
 
-    return false;  
+    this->on_player = false;
+    return false; 
 }
