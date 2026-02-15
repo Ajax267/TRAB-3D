@@ -34,7 +34,7 @@
 #define JUMP_DELAY 3.0
 
 // Nos PCs do LabGradII 'MOUSE_SENSITIVY 2.0' estava muito alto
-#define MOUSE_SENSITIVY 1.0
+#define MOUSE_SENSITIVY 1.2
 
 // debug
 int debug = 0;
@@ -97,12 +97,6 @@ int LeftMouseButton = -1;
 int LeftMouseState = -1;
 int RightMouseButton = -1;
 int RightMouseState = -1;
-
-//Game Mouse Pos
-float gCurrentGameMouseX = 0;
-float gCurrentGameMouseY = 0;
-float gPastGameMouseX = 0;
-float gPastGameMouseY = 0;
 
 // Camera Modes
 
@@ -321,12 +315,22 @@ void Player2_Keys(GLdouble timeDiference, GLdouble currentTime)
 
     if (keyStatus[(int)('4')])
     {
-        p2.RotateGun(timeDiference);
+        p2.RotateGunYaw(timeDiference);
     }
     if (keyStatus[(int)('6')])
     {
-        p2.RotateGun(-timeDiference);
+        p2.RotateGunYaw(-timeDiference);
     }
+
+    if (keyStatus[(int)('2')])
+    {
+        p2.RotateGunRoll(-timeDiference * MOUSE_SENSITIVY);
+    }
+    if  (keyStatus[(int)('8')])
+    {
+        p2.RotateGunRoll(timeDiference * MOUSE_SENSITIVY);
+    }
+
 
     p2.IncreaseHeight(timeDiference,keyStatus[(int)'.']);
 
@@ -378,35 +382,29 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
         last_time_player_shoot[0] = currentTime;
     }
 
-    // Se o Jogador para de mover o mouse a mão para
-    gPastGameMouseX=gCurrentGameMouseX;
-    gPastGameMouseY=gCurrentGameMouseY;
-
-    gCurrentGameMouseX = gCurrentMouseX;
-    gCurrentGameMouseY = gCurrentMouseY;
-
     // Movimento é Horizontal, quis fazer um movimento adaptativo em relação
     // à orientação do personagem, mas vou deixar isso parado por hora
-    double PastX = gPastGameMouseY; //*cos(p1.GetYaw()*RADIANS); + gPastGameMouseX*sin(p1.GetYaw()*RADIANS);
-    double PastY = gPastGameMouseX; //*cos(p1.GetYaw()*RADIANS); + gPastGameMouseY*sin(p1.GetYaw()*RADIANS);
-    double CurrentX = gCurrentGameMouseY;//*cos(p1.GetYaw()*RADIANS); + gCurrentGameMouseX*sin(p1.GetYaw()*RADIANS);
-    double CurrentY = gCurrentGameMouseX;//*cos(p1.GetYaw()*RADIANS); + gCurrentGameMouseY*sin(p1.GetYaw()*RADIANS);
 
-    // Do jeito que está apenas a variação em Y que afeta o angulo
-    // Portanto, inverti os eixos ao passar para função
-    // Para detectar movimento horizontal ao invés de vertical
-    double mouse_angle = atan2(
-        cross_product_2d(PastX,PastY,CurrentX,CurrentY),
-        dot_product_2d(PastX,PastY,CurrentX,CurrentY)
-    );
-    // printf(" mouse_angle in rads :  %.5f\n",mouse_angle);
-    if ( mouse_angle < 0)
+    // printf("Current Mouse X %.2f\n",gCurrentMouseX);
+    // printf("Past Mouse X %.2f\n",gPastMouseX);
+    double mouse_x_angle = gCurrentMouseX-gPastMouseX;
+    if ( mouse_x_angle < 0)
     {
-        p1.RotateGun(timeDiference * MOUSE_SENSITIVY);
+        p1.RotateGunYaw(timeDiference * MOUSE_SENSITIVY);
     }
-    if  ( mouse_angle > 0)
+    if  ( mouse_x_angle > 0)
     {
-        p1.RotateGun(-timeDiference * MOUSE_SENSITIVY);
+        p1.RotateGunYaw(-timeDiference * MOUSE_SENSITIVY);
+    }
+
+    double mouse_y_angle = gCurrentMouseY-gPastMouseY;
+    if ( mouse_y_angle < 0)
+    {
+        p1.RotateGunRoll(-timeDiference * MOUSE_SENSITIVY);
+    }
+    if  ( mouse_y_angle > 0)
+    {
+        p1.RotateGunRoll(timeDiference * MOUSE_SENSITIVY);
     }
 
     p1.UpdateDecayType(g_arena,g_obstacles,g_players);
@@ -749,6 +747,7 @@ void init_game(void)
             player.GetOrientation().SetYaw(initial_players_angle[i]); // puts in the start Yaw
             player.Rotate(0); // Updates Direction vector
             player.SetGunYaw(0.0); // puts in the start gun yaw
+            player.SetGunPitch(0.0);
             player.SetMovingStatus(false);
             player.SetLastAnimationAttemptPosition(player.GetPosition());
         }
@@ -774,17 +773,20 @@ void keyPress(unsigned char key, int x, int y)
     // printf("Key : n:%d c:%c\n",key,key);
     switch (key)
     {
-        case '1':
+        case 'y':
+        case 'Y':
             camera_spectator_mode = !camera_spectator_mode;
             break;
         
-        case '2':
+        case 'h':
+        case 'H':
             toggle_player_camera = !toggle_player_camera;
             if (toggle_player_camera) init_player1_camera();
             else init_arena_camera();
             break;
         
-        case '3':
+        case 'n':
+        case 'N':
             toggle_light = !toggle_light;
             if (toggle_light) glEnable(GL_LIGHTING);
             else glDisable(GL_LIGHTING);
@@ -829,6 +831,9 @@ void keyPress(unsigned char key, int x, int y)
         case CAPS_SPECIAL_KEY:
             keyStatus[(int)(SPECIAL_KEY)] = 1; //Using keyStatus trick
             break;
+        case '2':
+            keyStatus[(int)('2')] = 1; //Using keyStatus trick
+            break;
         case '5':
             keyStatus[(int)('5')] = 1; //Using keyStatus trick
             break;
@@ -837,6 +842,9 @@ void keyPress(unsigned char key, int x, int y)
             break;
         case '6':
             keyStatus[(int)('6')] = 1; //Using keyStatus trick
+            break;
+        case '8':
+            keyStatus[(int)('8')] = 1; //Using keyStatus trick
             break;
         case '.':
             keyStatus[(int)('.')] = 1; //Using keyStatus trick
@@ -913,6 +921,9 @@ void idle(void)
         
         glutPostRedisplay();
     }
+
+    gPastMouseX = gCurrentMouseX;
+    gPastMouseY = gCurrentMouseY;
 }
 
 

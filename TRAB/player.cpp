@@ -68,6 +68,10 @@ void ArenaPlayer::DrawArm()
             this->gun_yaw,
             0,0,1
         );
+        glRotatef(
+            this->gun_roll,
+            1,0,0
+        );
         // DrawRectWithBorder(
         //     this->GetRadius()*ARM_HEIGHT_MULTIPLER,
         //     this->GetRadius()*ARM_WIDTH_MULTIPLER,
@@ -207,11 +211,22 @@ void ArenaPlayer::Rotate(GLdouble timeDiference)
 }
 
 
-void ArenaPlayer::RotateGun(GLdouble timeDiference)
+void ArenaPlayer::RotateGunYaw(GLdouble timeDiference)
 {
     this->gun_yaw += GUN_ROTATIONAL_SPEED*timeDiference;
     if (this->gun_yaw >= 45.0) this->gun_yaw = 45.0;
     if (this->gun_yaw <= -45.0) this->gun_yaw = -45.0;
+    // printf("gun_yaw %3.f\n",gun_yaw);
+
+}
+
+void ArenaPlayer::RotateGunRoll(GLdouble timeDiference)
+{
+    this->gun_roll += GUN_ROTATIONAL_SPEED*timeDiference;
+    if (this->gun_roll >= 45.0) this->gun_roll = 45.0;
+    if (this->gun_roll <= -45.0) this->gun_roll = -45.0;
+    // printf("gun_yaw %3.f\n",gun_yaw);
+
 }
 
 
@@ -236,6 +251,10 @@ void ArenaPlayer::Shoot()
         glRotatef(
             this->gun_yaw,
             0,0,1
+        );
+        glRotatef(
+            this->gun_roll,
+            1,0,0
         );
         // Center bullet on the gun
         glTranslatef(
@@ -270,13 +289,15 @@ void ArenaPlayer::Shoot()
         // Portanto pegamos as projeções devido as rotações na coluna do eixo Y
         double bullet_x_angle = modelview_matrix[4]; // Angulo em X
         double bullet_y_angle = modelview_matrix[5]; // Angulo em Y
+        double bullet_z_angle = modelview_matrix[6];
 
         this->bullet_vec.emplace_back(
             bullet_x,-bullet_y,bullet_z,
             0.0,0.0,0.0,
             this->GetColorName(),
             BULLET_VEL*bullet_x_angle,
-            -BULLET_VEL*bullet_y_angle,0,
+            -BULLET_VEL*bullet_y_angle,
+            BULLET_VEL*bullet_z_angle,
             this->GetRadius()*BULLET_RADIUS_SCALER,this->GetId()
         );
     glPopMatrix();
@@ -310,7 +331,7 @@ void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
 
     if (this->jump_decay)
     {
-        printf("jump_decay_type %d\n",jump_decay_type);
+        // printf("jump_decay_type %d\n",jump_decay_type);
         current_z -= MAX_JUMP_HEIGHT * timeDiference;
         if (jump_decay_type == JUMP_DECAY_ARENA)
         {
@@ -342,6 +363,7 @@ void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
         this->GetPosition().SetZ(current_z);
     }
 }
+
 
 void ArenaPlayer::UpdateDecayType(
     CircularArena& arena,
