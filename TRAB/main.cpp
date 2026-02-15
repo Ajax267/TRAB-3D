@@ -328,12 +328,13 @@ void Player2_Keys(GLdouble timeDiference, GLdouble currentTime)
         p2.RotateGun(-timeDiference);
     }
 
-    p2.IncreaseHeight(timeDiference,keyStatus[SPACE_BAR]);
+    p2.IncreaseHeight(timeDiference,keyStatus[(int)'.']);
 
     // Queria fazer genérico, mas vai ficar hardcoded como jogador 2 
     // Porque estamos sem tempo
     ArenaPlayer p1 = g_players[0];
     p2.DecreaseHeight(timeDiference,p1);
+    p2.UpdateDecayType(g_arena,g_obstacles,g_players);
 }
 
 
@@ -408,7 +409,8 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
         p1.RotateGun(-timeDiference * MOUSE_SENSITIVY);
     }
 
-    p1.IncreaseHeight(timeDiference,keyStatus[(int)'.']);
+    p1.UpdateDecayType(g_arena,g_obstacles,g_players);
+    p1.IncreaseHeight(timeDiference,keyStatus[SPACE_BAR]);
 
     // Queria fazer genérico, mas vai ficar hardcoded como jogador 2 
     // Porque estamos sem tempo
@@ -835,6 +837,9 @@ void keyPress(unsigned char key, int x, int y)
             break;
         case '6':
             keyStatus[(int)('6')] = 1; //Using keyStatus trick
+            break;
+        case '.':
+            keyStatus[(int)('.')] = 1; //Using keyStatus trick
             break;
 
         //------------------Game------------------//

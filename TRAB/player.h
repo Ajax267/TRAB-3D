@@ -101,6 +101,11 @@ class ArenaPlayer : public CircularEntityDefinition
         bool IsMoving();
         void IncreaseHeight(GLdouble timeDiference,int jump_button_status);
         void DecreaseHeight(GLdouble timeDiference, ArenaPlayer player);
+        void UpdateDecayType(
+            CircularArena& arena,
+            std::vector<CircularObstacle>& obstacles_vec,
+            std::vector<ArenaPlayer>& player_vec
+        );
 
         // Collions Check
         double SquareDistanceTo(double x, double y);

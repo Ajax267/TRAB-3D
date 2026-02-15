@@ -181,11 +181,11 @@ void ArenaPlayer::Move(
         this->GetPosition() = this->GetLastPosition();
     }
 
-    //Hierarquia dos pulos
-    this->jump_decay_type = JUMP_DECAY_ARENA;
-    if ( this->on_obstacle ) this->jump_decay_type = JUMP_DECAY_OBSTACLE;
-    if ( this->on_player ) this->jump_decay_type = JUMP_DECAY_PLAYER;
-
+    // Apenas atualiza quando move
+    // //Hierarquia dos pulos
+    // this->jump_decay_type = JUMP_DECAY_ARENA;
+    // if ( this->on_obstacle ) this->jump_decay_type = JUMP_DECAY_OBSTACLE;
+    // if ( this->on_player ) this->jump_decay_type = JUMP_DECAY_PLAYER;
     // printf("jump_decay_type : %d\n",jump_decay_type);
 
 }
@@ -310,6 +310,7 @@ void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
 
     if (this->jump_decay)
     {
+        printf("jump_decay_type %d\n",jump_decay_type);
         current_z -= MAX_JUMP_HEIGHT * timeDiference;
         if (jump_decay_type == JUMP_DECAY_ARENA)
         {
@@ -340,6 +341,26 @@ void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
         }
         this->GetPosition().SetZ(current_z);
     }
+}
+
+void ArenaPlayer::UpdateDecayType(
+    CircularArena& arena,
+    std::vector<CircularObstacle>& obstacles_vec,
+    std::vector<ArenaPlayer>& player_vec
+)
+{
+
+    bool arena_c = this->ArenaCollision(arena);
+    bool object_c = this->ObstacleCollision(arena,obstacles_vec);
+    bool player_c = this->PlayerCollision(arena,player_vec);
+    if ( arena_c || object_c || player_c )
+    {
+        this->GetPosition() = this->GetLastPosition();
+    }
+    // //Hierarquia dos pulos
+    this->jump_decay_type = JUMP_DECAY_ARENA;
+    if ( this->on_obstacle ) this->jump_decay_type = JUMP_DECAY_OBSTACLE;
+    if ( this->on_player ) this->jump_decay_type = JUMP_DECAY_PLAYER;
 }
 
 
@@ -437,14 +458,16 @@ bool ArenaPlayer::PlayerCollision(CircularArena& arena, std::vector<ArenaPlayer>
             {
                 if (
                     this->GetPosition().GetZ() >= current_player.GetPosition().GetZ() &&
-                    this->GetPosition().GetZ() < current_player.GetHeight()
+                    this->GetPosition().GetZ() < current_player.GetPosition().GetZ() + current_player.GetHeight()
                 )
                 {
                     return true;
                 }
-
-                this->on_player = true;
-                return false;
+                else if (this->GetPosition().GetZ() >= current_player.GetPosition().GetZ() + current_player.GetHeight())
+                {
+                    this->on_player = true;
+                    return false;
+                }
             }
         }
     }
