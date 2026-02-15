@@ -13,6 +13,9 @@
 #include "arena.h"
 #include "arena_obstacles.h"
 
+
+#define BULLET_RES 10
+
 class ArenaPlayer; // forward declaration
 
 class Bullet : public CircularEntityDefinition

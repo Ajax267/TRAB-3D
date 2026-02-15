@@ -47,4 +47,31 @@ void DrawEllipseWithBorder(
     double circle_res = CIRCULE_RES
 );
 
+void DrawCilinder(
+    GLdouble radius,
+    GLdouble height,
+    GLfloat r,
+    GLfloat g,
+    GLfloat b,
+    GLint slices_stacks
+);
+void DrawRect3D(
+    double size_x,
+    double size_y,
+    double size_z,
+    GLfloat r,
+    GLfloat g,
+    GLfloat b
+);
+void DrawSphere(
+    GLdouble radius,
+    GLfloat r,
+    GLfloat g,
+    GLfloat b,
+    GLint slices_stacks
+);
+void DrawAxes(double size);
+void DrawObj(double size);
+
+
 #endif

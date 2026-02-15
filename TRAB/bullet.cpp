@@ -31,11 +31,17 @@ void Bullet::DrawBullet()
         glTranslatef(
             this->GetPosition().GetX(),
             -this->GetPosition().GetY(),
-            0
+            this->GetPosition().GetZ()
         );
-        DrawCircWithBorder(
+        // printf("Bullet Z : %.3f\n",this->GetPosition().GetZ());
+        // DrawCircWithBorder(
+        //     this->GetRadius(),
+        //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
+        // );
+        DrawSphere(
             this->GetRadius(),
-            this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
+            this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
+            BULLET_RES
         );
     glPopMatrix();
 }
@@ -50,12 +56,13 @@ bool Bullet::Delete(CircularArena& arena, std::vector<ArenaPlayer>& players_vec,
     return false;
 }
 
-double Bullet::SquareDistanceTo(double x, double y)
+double Bullet::SquareDistanceTo(double x, double y) //, double z)
 {
     double dx = fabs(x - this->GetPosition().GetX());
     double dy = fabs(y - this->GetPosition().GetY());
+    //double dz = fabs(y - this->GetPosition().GetZ());
 
-    return (dx*dx + dy*dy);
+    return (dx*dx + dy*dy); //+ dz*dz);
 }
 
 bool Bullet::InArena(CircularArena& arena)
