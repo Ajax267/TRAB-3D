@@ -219,7 +219,11 @@ void DrawCilinder(GLdouble radius, GLdouble height, GLfloat r, GLfloat g, GLfloa
     glPopMatrix();
 }
 
-void DrawRect3D(double size_x, double size_y, double size_z, GLfloat r, GLfloat g, GLfloat b)
+void DrawRect3D(
+    double size_x, double size_y, double size_z, 
+    GLfloat r, GLfloat g, GLfloat b,
+    double trans_x, double trans_y, double trans_z
+)
 {
     // GLfloat mat_ambient_r[] = { 1.0, 0.0, 0.0, 1.0 };
     // GLfloat mat_ambient_g[] = { 0.0, 1.0, 0.0, 1.0 };
@@ -237,7 +241,7 @@ void DrawRect3D(double size_x, double size_y, double size_z, GLfloat r, GLfloat 
         // glColor3fv(mat_ambient_g);
         glRotatef(90,0,0,1);
         glScalef(size_x, size_y, size_z);
-        glTranslatef(0.5, 0, 0); // put in one end
+        glTranslatef(trans_x, trans_y, trans_z); // put in one end
         glutSolidCube(1.0);
     glPopMatrix();
   

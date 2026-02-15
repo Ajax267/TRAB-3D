@@ -22,7 +22,7 @@
 #define PLAYER_RES 10
 
 #define BULLET_VEL (PLAYER_SPEED*2.0)
-#define BULLET_RADIUS_SCALER 0.4
+#define BULLET_RADIUS_SCALER 0.2
 #define BODY_X_RADIUS_MULTIPLER 2
 
 #define ARM_DISTANCE_MULTIPLER 0.7
@@ -49,6 +49,9 @@ class ArenaPlayer : public CircularEntityDefinition
         int _id;
         short _last_leg_id = LEFT_LEG_ID;
         bool is_leg_rotated = false;
+        int _soldadoMov = -1;
+        int _soldadoFrame = 0;
+        double _soldadoAccumMs = 0.0;
         
     public:
         ArenaPlayer()
@@ -112,6 +115,11 @@ class ArenaPlayer : public CircularEntityDefinition
         int& GetID() {return this->_id;};
         void SetLastAnimationAttemptPosition(PositionDefinition pos)
             {this->last_animation_attempt_position = pos;};
+
+    
+        void UpdateSoldadoAnim(double dtMs, bool andando);
+        int GetSoldadoMov() const { return _soldadoMov;}
+        int GetSoldadoFrame() const { return _soldadoFrame;}
 };
 
 #endif

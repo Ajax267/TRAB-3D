@@ -226,5 +226,6 @@ double cross_product_2d(double x1, double y1, double x2, double y2);
 void normalize_3d(float a[3]);
 void cross_product_3d(float a[3], float b[3], float out[3]);
 void vector_3d_difference(float a[3], float b[3], float out[3]);
+void dot_product_3d(float a[3], float b[3], float out[3]);
 
 #endif

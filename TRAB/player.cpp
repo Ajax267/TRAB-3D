@@ -4,6 +4,7 @@
 extern meshes g_soldado;
 extern bool g_drawSoldado;
 extern int g_movIdle;
+extern int g_movWalking;
 extern float g_modelScale, g_modelRotX, g_modelRotZ;
 
 //----------Drawing------------//
@@ -106,16 +107,24 @@ void ArenaPlayer::DrawPlayer()
     glTranslatef(this->GetPosition().GetX(), -this->GetPosition().GetY(), 0);
     glRotatef(this->GetOrientation().GetYaw(), 0, 0, 1);
 
-      if (g_drawSoldado)
+    if (g_drawSoldado)
     {
         glPushMatrix();
-        
+
         glRotatef(g_modelRotZ, 0, 0, 1);
         glRotatef(g_modelRotX, 1, 0, 0);
 
-            glScalef(g_modelScale, g_modelScale, g_modelScale);
+        glScalef(g_modelScale, g_modelScale, g_modelScale);
 
-            g_soldado.draw(g_movIdle, 0);
+        int mov = this->GetSoldadoMov();
+        int frame = this->GetSoldadoFrame();
+        if (mov < 0)
+        {
+            mov = g_movIdle;
+            frame = 0;
+        } 
+
+        g_soldado.draw(mov, frame);
         glPopMatrix();
     }
     else
@@ -226,10 +235,17 @@ void ArenaPlayer::Shoot()
     glRotatef(
         this->gun_yaw,
         0, 0, 1);
+    // Center bullet on the gun
     glTranslatef(
-        0,
+        this->GetRadius() * ARM_WIDTH_MULTIPLER / 2,
         this->GetRadius() * ARM_HEIGHT_MULTIPLER + this->GetRadius() * BULLET_RADIUS_SCALER,
-        0);
+        -this->GetRadius() * ARM_WIDTH_MULTIPLER / 2);
+
+    // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glGet.xml
+    // GL_MODELVIEW_MATRIX
+    // params returns sixteen values:
+    // the modelview matrix on the top of the modelview matrix stack.
+    // Initially this matrix is the identity matrix.
 
     // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glGet.xml
     // GL_MODELVIEW_MATRIX
@@ -351,4 +367,35 @@ bool ArenaPlayer::PlayerCollision(CircularArena &arena, std::vector<ArenaPlayer>
     }
 
     return false;
+}
+
+void ArenaPlayer::UpdateSoldadoAnim(double dtMs, bool andando)
+{
+    const int targetMov = andando ? g_movWalking : g_movIdle;
+
+    if (_soldadoMov != targetMov)
+    {
+        _soldadoMov = targetMov;
+        _soldadoFrame = 0;
+        _soldadoAccumMs = 0.0;
+    }
+    const double frameMs = 20.0;
+    _soldadoAccumMs += dtMs;
+
+    while (_soldadoAccumMs >= frameMs)
+    {
+        _soldadoAccumMs -= frameMs;
+        _soldadoFrame++;
+
+        int maxFrames = (int)g_soldado.vecMeshes[_soldadoMov].size();
+        if (maxFrames <= 0)
+        {
+            _soldadoFrame = 0;
+            break;
+        }
+        if (_soldadoFrame >= maxFrames)
+        {
+            _soldadoFrame = 0;
+        }
+    }
 }

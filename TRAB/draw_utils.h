@@ -56,12 +56,9 @@ void DrawCilinder(
     GLint slices_stacks
 );
 void DrawRect3D(
-    double size_x,
-    double size_y,
-    double size_z,
-    GLfloat r,
-    GLfloat g,
-    GLfloat b
+    double size_x, double size_y, double size_z,
+    GLfloat r, GLfloat g, GLfloat b,
+    double trans_x = 0.5, double trans_y = -0.5, double trans_z = -0.5
 );
 void DrawSphere(
     GLdouble radius,
