@@ -18,7 +18,10 @@
 #define GUN_ROTATIONAL_SPEED 100.0 // Para mover para cima e para baixo se mantenha consistente
 #define PLAYER_HEALTH 3
 
-#define BULLET_VEL (PLAYER_SPEED*2.0) // (3.54*PLAYER_SPEED) = PLAYER_SPEED pra bala WTF ????
+#define PLAYER_HEIGHT 10
+#define PLAYER_RES 10
+
+#define BULLET_VEL (PLAYER_SPEED*2.0)
 #define BULLET_RADIUS_SCALER 0.4
 #define BODY_X_RADIUS_MULTIPLER 2
 
@@ -83,8 +86,6 @@ class ArenaPlayer : public CircularEntityDefinition
         void Shoot();
         void GotHit() { this->health--;};
         bool IsMoving();
-        // void DeleteBullet(std::size_t index);
-        // int GetBulletIndex(Bullet* bullet);
 
         // Collions Check
         double SquareDistanceTo(double x, double y);
@@ -92,7 +93,6 @@ class ArenaPlayer : public CircularEntityDefinition
         bool ArenaCollision(CircularArena& arena);
         bool ObstacleCollision(CircularArena& arena, std::vector<CircularObstacle>& obstacles_vec);
         bool PlayerCollision(CircularArena& arena, std::vector<ArenaPlayer>& players_vec);
-        // Bullet* BulletCollision(std::vector<Bullet*> bullet_vec); 
 
         // Pos and Hitbox
         double Hitbox(){ return this->GetRadius(); };

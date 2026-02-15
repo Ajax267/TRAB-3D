@@ -23,6 +23,7 @@
 #define ESC_KEY 27
 
 #define LEFT_CLICK 0
+#define RIGHT_CLICK 1
 #define MOUSE_PRESSED 0 
 #define MOUSE_RELEASED 1
 
@@ -31,7 +32,7 @@
 #define WEAPON_FIRERATE 200.0
 
 // Nos PCs do LabGradII 'MOUSE_SENSITIVY 2.0' estava muito alto
-#define MOUSE_SENSITIVY 12.0
+#define MOUSE_SENSITIVY 1.0
 
 // debug
 int debug = 0;
@@ -80,9 +81,6 @@ short int game_winner = NO_PLAYER;
 PositionDefinition past_p1_pos;
 PositionDefinition past_b1_pos;
 
-//Controla a animacao do robo
-int animate = 0;
-
 // Counts how many times the ball was hit
 static char str[1000];
 void * font = GLUT_BITMAP_9_BY_15;
@@ -92,8 +90,11 @@ float gCurrentMouseX = 0;
 float gCurrentMouseY = 0;
 float gPastMouseX = 0;
 float gPastMouseY = 0;
-int MouseButton = -1;
-int MouseState = -1;
+
+int LeftMouseButton = -1;
+int LeftMouseState = -1;
+int RightMouseButton = -1;
+int RightMouseState = -1;
 
 //Game Mouse Pos
 float gCurrentGameMouseX = 0;
@@ -101,6 +102,14 @@ float gCurrentGameMouseY = 0;
 float gPastGameMouseX = 0;
 float gPastGameMouseY = 0;
 
+//Enable Spectator Mode
+int camera_spectator_mode = 0;
+
+// Camera movement
+float camera_coords[3] = {0.0,2.0,5.0};
+float look_camera_coords[3] = {0.0,0.0,0.0};
+float camXZAngle = 0;
+float camXYAngle = 0;
 
 /**
  * @brief Updates Mouse coordinates.
@@ -109,10 +118,28 @@ float gPastGameMouseY = 0;
  */
 void globalmouseMotion(int x, int y)
 {
-   gPastMouseX = gCurrentMouseX;
-   gPastMouseY = gCurrentMouseY;
-   gCurrentMouseX = (x / ( (float) VHeight ));
-   gCurrentMouseY = ((Height-y) / ((float) Height));
+    gPastMouseX = gCurrentMouseX;
+    gPastMouseY = gCurrentMouseY;
+    gCurrentMouseX = (x / ( (float) VHeight ));
+    gCurrentMouseY = ((Height-y) / ((float) Height));
+
+    if (RightMouseButton == RIGHT_CLICK && RightMouseState == MOUSE_PRESSED &&  camera_spectator_mode)
+    {
+        camXZAngle -= (gCurrentMouseX - gPastMouseX);
+        camXYAngle += (gCurrentMouseY - gCurrentMouseY);
+
+        if(camXYAngle > 89.0)  camXYAngle = 89.0;
+        if(camXYAngle < -89.0) camXYAngle = -89.0;
+
+        if(camXZAngle > 89.0)  camXYAngle = 89.0;
+        if(camXZAngle < -89.0) camXYAngle = -89.0;
+        
+        look_camera_coords[0] = cos(camXYAngle * M_PI/180.0) * sin(camXZAngle * M_PI/180.0);
+        look_camera_coords[1] = sin(camXYAngle * M_PI/180.0);
+        look_camera_coords[2] = -cos(camXYAngle * M_PI/180.0) * cos(camXZAngle * M_PI/180.0);
+
+        glutPostRedisplay();
+    }
 }
 
 
@@ -125,8 +152,27 @@ void globalmouseMotion(int x, int y)
  */
 void mouseClick(int button, int state, int x,int y)
 {
-    MouseButton = button;
-    MouseState = state;
+    if (button == GLUT_LEFT_BUTTON &&  state == GLUT_DOWN)
+    {
+        LeftMouseButton = LEFT_CLICK;
+        LeftMouseState = MOUSE_PRESSED;
+    }
+    else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) 
+    {
+        LeftMouseButton = -1;
+        LeftMouseState = MOUSE_RELEASED;
+    }
+    if (button == GLUT_RIGHT_BUTTON &&  state == GLUT_DOWN)
+    {
+        RightMouseButton = RIGHT_CLICK;
+        RightMouseState = MOUSE_PRESSED;
+    }
+    else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) 
+    {
+        RightMouseButton = -1;
+        RightMouseState = MOUSE_RELEASED;
+    }
+
 }
 
 
@@ -242,7 +288,7 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
     {
         p1.Rotate(-timeDiference);
     }
-    if (MouseButton == LEFT_CLICK && MouseState == MOUSE_PRESSED && 
+    if (LeftMouseButton == LEFT_CLICK && LeftMouseState == MOUSE_PRESSED && 
         (currentTime-last_time_player_shoot[0]) > WEAPON_FIRERATE
     )
     {
@@ -281,6 +327,26 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
         p1.RotateGun(-timeDiference * MOUSE_SENSITIVY);
     }
 
+}
+
+
+void SpectatorMode_Keys(double deltaTime)
+{
+    // velocidade da câmera
+    double camera_speed = 50.0 * deltaTime;
+
+    if(keyStatus['w']) 
+    {
+        camera_coords[0] +=  look_camera_coords[0] * camera_speed;
+        camera_coords[1] +=  look_camera_coords[1] * camera_speed;
+        camera_coords[2] +=  look_camera_coords[2] * camera_speed;
+    }
+    if(keyStatus['s'])
+    {
+        camera_coords[0] -=  look_camera_coords[0] * camera_speed;
+        camera_coords[1] -=  look_camera_coords[1] * camera_speed;
+        camera_coords[2] -=  look_camera_coords[2] * camera_speed;
+    }
 }
 
 
@@ -362,6 +428,7 @@ void PrintText(GLfloat x, GLfloat y, const char * text, double r, double g, doub
     glMatrixMode (GL_MODELVIEW);
 }
 
+
 /**
  * @brief Prints players score and which player won on the screen.
  * @param x Text X coordinate on the screen
@@ -391,8 +458,13 @@ void ImprimePlacar(GLfloat x, GLfloat y, int player)
 
     //Define a cor e posicao onde vai comecar a imprimir
     PrintText(x, y, str, r,g,b); 
+    if (camera_spectator_mode)
+    {
+        PrintText(-VWidth*0.5,VHeight*0.30, "X -> RED", 1,0,0);
+        PrintText(-VWidth*0.5,VHeight*0.25, "Y -> GREEN", 0,1,0);
+        PrintText(-VWidth*0.5,VHeight*0.20, "Z -> BLUE", 0,1,1);
+    }   
 }
-
 
 
 /**
@@ -401,23 +473,27 @@ void ImprimePlacar(GLfloat x, GLfloat y, int player)
 void renderScene(void)
 {
     // Clear the screen.
-    glClearColor(0.0,0.0,0.0,1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-
-        //g_arena.DrawArena();
-
-        //CAMERA TEMPORARIA PRA TESTAR
+    glClear (   GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        //gluLookAt(0,-400,400, 0,0,0, 0,1,0);
         gluLookAt(
-            0, -g_arena.GetRadius()*2.5, g_arena.GetRadius()*1.5, 
-            0, 0, 0, 
-            0, 0, 1
+            camera_coords[0],
+            camera_coords[1],
+            camera_coords[2],
+            camera_coords[0] + look_camera_coords[0],
+            camera_coords[1] + look_camera_coords[1],
+            camera_coords[2] + look_camera_coords[2],
+            0,1,0
         );
+    
+        // GLfloat light_position[] = { light_x, light_y, light_z, 1.0 };
+        // glLightfv(  GL_LIGHT0, GL_POSITION, light_position);
 
-        glColor3f(g_arena.GetRGB().GetR(), g_arena.GetRGB().GetG(), g_arena.GetRGB().GetB());
-        GLUquadricObj *quadric = gluNewQuadric();
-        gluDisk(quadric, 0, g_arena.GetRadius(), 50, 1);
-        gluDeleteQuadric(quadric);
+        //DrawAxes(200);
+
+        g_arena.DrawArena();
 
         for ( CircularObstacle& obstacle : g_obstacles)
         {
@@ -443,6 +519,18 @@ void renderScene(void)
         else ImprimePlacar(-VWidth*0.05,VHeight*0, game_winner); 
 
     glutSwapBuffers(); // Desenha the new frame of the game.
+}
+
+
+void init_camera_direction_vector(void)
+{
+    camera_coords[0] = 0; 
+    camera_coords[1] = -400;//-g_arena.GetRadius()*2.5; -400,400
+    camera_coords[2] =  400;//g_arena.GetRadius()*1.5;
+
+    float center_start[3] = {0.0,0.0,0.0};
+    vector_3d_difference(center_start,camera_coords,(float*)look_camera_coords);
+    normalize_3d(look_camera_coords);
 }
 
 
@@ -508,6 +596,8 @@ void init_game(void)
         last_players_recorded_pos.push_back(player.GetPosition());
     }
     if (first_start) first_start=false; //first setup
+
+    init_camera_direction_vector();
 }
 
 
@@ -521,7 +611,7 @@ void keyPress(unsigned char key, int x, int y)
     switch (key)
     {
         case '1':
-            animate = !animate;
+            camera_spectator_mode = !camera_spectator_mode;
             break;
         
         //------------------Player 1------------------//
@@ -631,7 +721,8 @@ void idle(void)
             game_finished=true;
         }
         AnimatePlayers(currentTime);
-        Player1_Keys(timeDiference*TIME_S,currentTime);
+        if (!camera_spectator_mode) Player1_Keys(timeDiference*TIME_S,currentTime);
+        else SpectatorMode_Keys(timeDiference*TIME_S);
         Player2_Keys(timeDiference*TIME_S,currentTime);
         Player1_Bullets(timeDiference*TIME_S);
         Player2_Bullets(timeDiference*TIME_S);
@@ -645,22 +736,44 @@ void idle(void)
 void gl_init(void)
 {
     ResetKeyStatus();
-    // The color the windows will redraw. Its done to erase the previous frame.
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black, no opacity(alpha).
+
+    glClearColor (0.0, 0.0, 0.0, 0.0);
+    //glShadeModel (GL_FLAT);
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_CULL_FACE);
+    // glEnable(GL_LIGHTING);
+    // glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION); // Select the projection matrix    
-    /*glOrtho(-(VWidth/2),     // X coordinate of left edge             
-            (VWidth/2),     // X coordinate of right edge            
-            -(VHeight/2), //-(VHeight/2)     // Y coordinate of bottom edge            
-            (VHeight/2),// (VHeight/2)     // Y coordinate of top edge
-            -100,     // Z coordinate of the “near” plane            
-            100);    // Z coordinate of the “far” plane*/
+    glViewport (
+        0,
+        0,
+        (GLsizei) Width, 
+        (GLsizei) Height
+    );
+    glMatrixMode (GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, (float)Width/(float)Height, 1.0, 2000.0);
-    glMatrixMode(GL_MODELVIEW); // Select the projection matrix    
-    glLoadIdentity();
+    gluPerspective(
+        70, 
+        1,//(GLfloat)windowSize/(GLfloat)windowSize, 
+        10,
+        800
+    );
+    
+    // // The color the windows will redraw. Its done to erase the previous frame.
+    // glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black, no opacity(alpha).
+ 
+    // glMatrixMode(GL_PROJECTION); // Select the projection matrix    
+    // glOrtho(-(VWidth/2),     // X coordinate of left edge             
+    //         (VWidth/2),     // X coordinate of right edge            
+    //         -(VHeight/2), //-(VHeight/2)     // Y coordinate of bottom edge            
+    //         (VHeight/2),// (VHeight/2)     // Y coordinate of top edge
+    //         -100,     // Z coordinate of the “near” plane            
+    //         100);    // Z coordinate of the “far” plane
+    // glMatrixMode(GL_MODELVIEW); // Select the projection matrix    
+    // glLoadIdentity();
       
 }
+
 
 /**
  * @brief Loads Arema
@@ -758,7 +871,7 @@ int main(int argc, char *argv[])
     // Create the window.
     glutInitWindowSize(Width, Height);
     glutInitWindowPosition(150,50);
-    glutCreateWindow("Joguin 2D");
+    glutCreateWindow("Joguin 3D");
 
     // Viewing Height=Width = Arena Diamater
     VHeight=VWidth=2*g_arena.GetRadius();

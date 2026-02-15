@@ -1,9 +1,14 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <math.h>
 
 #include "tinyxml2.h"
 
@@ -218,5 +223,8 @@ class CircularEntityDefinition : public EntityDefinition
 std::vector<CircleDefinition> svg_parser(const char* path);
 double dot_product_2d(double x1, double y1, double x2, double y2);
 double cross_product_2d(double x1, double y1, double x2, double y2);
+void normalize_3d(float a[3]);
+void cross_product_3d(float a[3], float b[3], float out[3]);
+void vector_3d_difference(float a[3], float b[3], float out[3]);
 
 #endif
