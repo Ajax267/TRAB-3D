@@ -52,6 +52,7 @@ class ArenaPlayer : public CircularEntityDefinition
         PositionDefinition last_animation_attempt_position;
         std::vector<Bullet> bullet_vec;
         double gun_yaw = 0.0;
+        double gun_roll = 0.0;
         short health = PLAYER_HEALTH;
         int _id;
         short _last_leg_id = LEFT_LEG_ID;
@@ -89,7 +90,8 @@ class ArenaPlayer : public CircularEntityDefinition
 
         // Player interaction -> Moving,Rotating and Shooting
         void Rotate(GLdouble timeDiference);
-        void RotateGun(GLdouble timeDiference);
+        void RotateGunYaw(GLdouble timeDiference);
+        void RotateGunRoll(GLdouble timeDiference);
         void Move(
             CircularArena& arena,
             std::vector<CircularObstacle>& obstacles_vec,
@@ -128,6 +130,7 @@ class ArenaPlayer : public CircularEntityDefinition
         PositionDefinition GetDirection() const {return this->direction;};
         
         void SetGunYaw(double g_yaw) {this->gun_yaw=g_yaw;};
+        void SetGunPitch(double g_pitch) {this->gun_roll=g_pitch;};
 
         int& GetID() {return this->_id;};
         void SetLastAnimationAttemptPosition(PositionDefinition pos)
