@@ -13,6 +13,9 @@ bool Bullet::Move(
     this->GetPosition().SetY(
         this->GetPosition().GetY()+ this->GetVelocity().GetVy() * timeDiference
     );
+    this->GetPosition().SetZ(
+        this->GetPosition().GetZ()+ this->GetVelocity().GetVz() * timeDiference
+    );
 
     if ( this->ObstacleCollision(arena,obstacles_vec) || 
          this->PlayerCollision(arena,players_vec) || 
@@ -62,11 +65,15 @@ double Bullet::SquareDistanceTo(double x, double y) //, double z)
     double dy = fabs(y - this->GetPosition().GetY());
     //double dz = fabs(y - this->GetPosition().GetZ());
 
-    return (dx*dx + dy*dy); //+ dz*dz);
+    return (dx*dx + dy*dy);
 }
 
 bool Bullet::InArena(CircularArena& arena)
 {
+    if (this->GetPosition().GetZ() < 0) //Arena tem origem em 0
+    {
+        return false; 
+    }
     return (
         this->SquareDistanceTo(arena.GetPosition().GetX(),arena.GetPosition().GetY()) 
         <= (arena.GetRadius()-this->GetRadius())*(arena.GetRadius()-this->GetRadius())
@@ -86,7 +93,15 @@ bool Bullet::ObstacleCollision(CircularArena& arena, std::vector<CircularObstacl
             double limit = obstacle.GetRadius() + this->Hitbox();
             if ( player_distance_from_obstacle_center <= limit*limit )
             {
-                return true;
+                if (
+                    (this->GetPosition().GetZ() + this->GetRadius() >= obstacle.GetPosition().GetZ() &&
+                    this->GetPosition().GetZ() + this->GetRadius() <= obstacle.GetHeight()) ||
+                    (this->GetPosition().GetZ() - this->GetRadius() >= obstacle.GetPosition().GetZ() &&
+                    this->GetPosition().GetZ() - this->GetRadius() <= obstacle.GetHeight())
+                )
+                {
+                    return true;
+                }
             }
         }
     }
@@ -113,8 +128,16 @@ bool Bullet::PlayerCollision(CircularArena& arena, std::vector<ArenaPlayer>& pla
             double limit = current_player.Hitbox() + this->Hitbox();
             if (bullet_distance_from_current_player <= limit * limit)
             {
-                current_player.GotHit();
-                return true;
+                if (
+                    (this->GetPosition().GetZ() + this->GetRadius() >= current_player.GetPosition().GetZ() &&
+                    this->GetPosition().GetZ() + this->GetRadius() <= current_player.GetPosition().GetZ() + current_player.GetHeight()) ||
+                    ((this->GetPosition().GetZ() - this->GetRadius() >= current_player.GetPosition().GetZ() &&
+                    this->GetPosition().GetZ() - this->GetRadius() <= current_player.GetPosition().GetZ() + current_player.GetHeight()))
+                )
+                {
+                    current_player.GotHit();
+                    return true;
+                }                
             }
         }
     }

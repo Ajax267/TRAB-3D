@@ -19,6 +19,7 @@
 #define PLAYER_HEALTH 3
 
 #define PLAYER_HEIGHT 10
+#define OBSTACLE_HEIGHT PLAYER_HEIGHT
 #define PLAYER_RES 10
 
 #define BULLET_VEL (PLAYER_SPEED*2.0)
@@ -36,6 +37,12 @@
 #define LEFT_LEG_ID 1
 #define RIGHT_LEG_ID 2
 
+#define JUMP_DECAY_ARENA 0
+#define JUMP_DECAY_OBSTACLE 1
+#define JUMP_DECAY_PLAYER 2
+#define MAX_JUMP_HEIGHT PLAYER_HEIGHT*2
+
+
 class Bullet; // forward declaration
 
 class ArenaPlayer : public CircularEntityDefinition
@@ -45,6 +52,7 @@ class ArenaPlayer : public CircularEntityDefinition
         PositionDefinition last_animation_attempt_position;
         std::vector<Bullet> bullet_vec;
         double gun_yaw = 0.0;
+        double gun_roll = 0.0;
         short health = PLAYER_HEALTH;
         int _id;
         short _last_leg_id = LEFT_LEG_ID;
@@ -52,6 +60,12 @@ class ArenaPlayer : public CircularEntityDefinition
         int _soldadoMov = -1;
         int _soldadoFrame = 0;
         double _soldadoAccumMs = 0.0;
+        float height = PLAYER_HEIGHT;
+        bool on_obstacle = false;
+        bool on_player = false;
+        float current_jump_height = 0;
+        bool jump_decay = false;
+        short jump_decay_type = JUMP_DECAY_ARENA;
         
     public:
         ArenaPlayer()
@@ -79,7 +93,8 @@ class ArenaPlayer : public CircularEntityDefinition
 
         // Player interaction -> Moving,Rotating and Shooting
         void Rotate(GLdouble timeDiference);
-        void RotateGun(GLdouble timeDiference);
+        void RotateGunYaw(GLdouble timeDiference);
+        void RotateGunRoll(GLdouble timeDiference);
         void Move(
             CircularArena& arena,
             std::vector<CircularObstacle>& obstacles_vec,
@@ -89,6 +104,13 @@ class ArenaPlayer : public CircularEntityDefinition
         void Shoot();
         void GotHit() { this->health--;};
         bool IsMoving();
+        void IncreaseHeight(GLdouble timeDiference,int jump_button_status);
+        void DecreaseHeight(GLdouble timeDiference, ArenaPlayer player);
+        void UpdateDecayType(
+            CircularArena& arena,
+            std::vector<CircularObstacle>& obstacles_vec,
+            std::vector<ArenaPlayer>& player_vec
+        );
 
         // Collions Check
         double SquareDistanceTo(double x, double y);
@@ -111,6 +133,7 @@ class ArenaPlayer : public CircularEntityDefinition
         PositionDefinition GetDirection() const {return this->direction;};
         
         void SetGunYaw(double g_yaw) {this->gun_yaw=g_yaw;};
+        void SetGunPitch(double g_pitch) {this->gun_roll=g_pitch;};
 
         int& GetID() {return this->_id;};
         void SetLastAnimationAttemptPosition(PositionDefinition pos)
@@ -120,6 +143,11 @@ class ArenaPlayer : public CircularEntityDefinition
         void UpdateSoldadoAnim(double dtMs, bool andando);
         int GetSoldadoMov() const { return _soldadoMov;}
         int GetSoldadoFrame() const { return _soldadoFrame;}
+        const float& GetHeight() const {return this->height;};
+        void SetHeight(float height) {this->height=height;};
+
+        const bool& GetJumpDecay() const {return this->jump_decay;};
+
 };
 
 #endif

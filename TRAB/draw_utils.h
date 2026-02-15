@@ -58,6 +58,7 @@ void DrawCilinder(
 void DrawRect3D(
     double size_x, double size_y, double size_z,
     GLfloat r, GLfloat g, GLfloat b,
+    double rot = 90.0, int rot_x = 0, int rot_y = 0, int rot_z = 1,
     double trans_x = 0.5, double trans_y = -0.5, double trans_z = -0.5
 );
 void DrawSphere(

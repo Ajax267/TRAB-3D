@@ -22,6 +22,7 @@
 #define SPECIAL_KEY 231      // isso é para o 'ç'
 #define CAPS_SPECIAL_KEY 199 // isso é para o 'ç
 #define ESC_KEY 27
+#define SPACE_BAR 32
 
 #define LEFT_CLICK 0
 #define RIGHT_CLICK 1
@@ -31,9 +32,10 @@
 #define TIME_S 0.001
 #define LEG_ANIMATION_DELAY_MS 350.0
 #define WEAPON_FIRERATE 200.0
+#define JUMP_DELAY 3.0
 
 // Nos PCs do LabGradII 'MOUSE_SENSITIVY 2.0' estava muito alto
-#define MOUSE_SENSITIVY 1.0
+#define MOUSE_SENSITIVY 1.2
 
 // debug
 int debug = 0;
@@ -97,12 +99,6 @@ int LeftMouseState = -1;
 int RightMouseButton = -1;
 int RightMouseState = -1;
 
-// Game Mouse Pos
-float gCurrentGameMouseX = 0;
-float gCurrentGameMouseY = 0;
-float gPastGameMouseX = 0;
-float gPastGameMouseY = 0;
-
 // Camera Modes
 
 // Enable Spectator Mode
@@ -125,6 +121,9 @@ int g_movWalking = -1;
 float g_modelScale = 0.5f;
 float g_modelRotX = 90.0f;
 float g_modelRotZ = 180.0f;
+//Disable Features
+int toggle_light = 0;
+int toggle_texture = 0;
 
 void init_player1_camera(void)
 {
@@ -295,11 +294,17 @@ void Player2_Keys(GLdouble timeDiference, GLdouble currentTime)
     }
     if (keyStatus[(int)('k')])
     {
-        p2.Rotate(timeDiference);
+        if (!keyStatus[(int)'.'] && !p2.GetJumpDecay())
+        {
+            p2.Rotate(timeDiference);
+        }
     }
     if (keyStatus[SPECIAL_KEY])
     {
-        p2.Rotate(-timeDiference);
+        if (!keyStatus[(int)'.'] && !p2.GetJumpDecay())
+        {
+            p2.Rotate(-timeDiference);
+        }
     }
     if (keyStatus[(int)('5')] &&
         (currentTime - last_time_player_shoot[1]) > WEAPON_FIRERATE)
@@ -310,12 +315,30 @@ void Player2_Keys(GLdouble timeDiference, GLdouble currentTime)
 
     if (keyStatus[(int)('4')])
     {
-        p2.RotateGun(timeDiference);
+        p2.RotateGunYaw(timeDiference);
     }
     if (keyStatus[(int)('6')])
     {
-        p2.RotateGun(-timeDiference);
+        p2.RotateGunYaw(-timeDiference);
     }
+
+    if (keyStatus[(int)('2')])
+    {
+        p2.RotateGunRoll(-timeDiference * MOUSE_SENSITIVY);
+    }
+    if  (keyStatus[(int)('8')])
+    {
+        p2.RotateGunRoll(timeDiference * MOUSE_SENSITIVY);
+    }
+
+
+    p2.IncreaseHeight(timeDiference,keyStatus[(int)'.']);
+
+    // Queria fazer genérico, mas vai ficar hardcoded como jogador 2 
+    // Porque estamos sem tempo
+    ArenaPlayer p1 = g_players[0];
+    p2.DecreaseHeight(timeDiference,p1);
+    p2.UpdateDecayType(g_arena,g_obstacles,g_players);
 }
 
 /**
@@ -338,11 +361,17 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
     }
     if (keyStatus[(int)('a')])
     {
-        p1.Rotate(timeDiference);
+        if (!keyStatus[SPACE_BAR] && !p1.GetJumpDecay())
+        {
+            p1.Rotate(timeDiference);
+        }
     }
     if (keyStatus[(int)('d')])
     {
-        p1.Rotate(-timeDiference);
+        if (!keyStatus[SPACE_BAR] && !p1.GetJumpDecay())
+        {
+            p1.Rotate(-timeDiference);
+        }
     }
     if (LeftMouseButton == LEFT_CLICK && LeftMouseState == MOUSE_PRESSED &&
         (currentTime - last_time_player_shoot[0]) > WEAPON_FIRERATE)
@@ -351,35 +380,38 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
         last_time_player_shoot[0] = currentTime;
     }
 
-    // Se o Jogador para de mover o mouse a mão para
-    gPastGameMouseX = gCurrentGameMouseX;
-    gPastGameMouseY = gCurrentGameMouseY;
-
-    gCurrentGameMouseX = gCurrentMouseX;
-    gCurrentGameMouseY = gCurrentMouseY;
-
     // Movimento é Horizontal, quis fazer um movimento adaptativo em relação
     // à orientação do personagem, mas vou deixar isso parado por hora
-    double PastX = gPastGameMouseY;       //*cos(p1.GetYaw()*RADIANS); + gPastGameMouseX*sin(p1.GetYaw()*RADIANS);
-    double PastY = gPastGameMouseX;       //*cos(p1.GetYaw()*RADIANS); + gPastGameMouseY*sin(p1.GetYaw()*RADIANS);
-    double CurrentX = gCurrentGameMouseY; //*cos(p1.GetYaw()*RADIANS); + gCurrentGameMouseX*sin(p1.GetYaw()*RADIANS);
-    double CurrentY = gCurrentGameMouseX; //*cos(p1.GetYaw()*RADIANS); + gCurrentGameMouseY*sin(p1.GetYaw()*RADIANS);
 
-    // Do jeito que está apenas a variação em Y que afeta o angulo
-    // Portanto, inverti os eixos ao passar para função
-    // Para detectar movimento horizontal ao invés de vertical
-    double mouse_angle = atan2(
-        cross_product_2d(PastX, PastY, CurrentX, CurrentY),
-        dot_product_2d(PastX, PastY, CurrentX, CurrentY));
-    // printf(" mouse_angle in rads :  %.5f\n",mouse_angle);
-    if (mouse_angle < 0)
+    // printf("Current Mouse X %.2f\n",gCurrentMouseX);
+    // printf("Past Mouse X %.2f\n",gPastMouseX);
+    double mouse_x_angle = gCurrentMouseX-gPastMouseX;
+    if ( mouse_x_angle < 0)
     {
-        p1.RotateGun(timeDiference * MOUSE_SENSITIVY);
+        p1.RotateGunYaw(timeDiference * MOUSE_SENSITIVY);
     }
-    if (mouse_angle > 0)
+    if  ( mouse_x_angle > 0)
     {
-        p1.RotateGun(-timeDiference * MOUSE_SENSITIVY);
+        p1.RotateGunYaw(-timeDiference * MOUSE_SENSITIVY);
     }
+
+    double mouse_y_angle = gCurrentMouseY-gPastMouseY;
+    if ( mouse_y_angle < 0)
+    {
+        p1.RotateGunRoll(-timeDiference * MOUSE_SENSITIVY);
+    }
+    if  ( mouse_y_angle > 0)
+    {
+        p1.RotateGunRoll(timeDiference * MOUSE_SENSITIVY);
+    }
+
+    p1.UpdateDecayType(g_arena,g_obstacles,g_players);
+    p1.IncreaseHeight(timeDiference,keyStatus[SPACE_BAR]);
+
+    // Queria fazer genérico, mas vai ficar hardcoded como jogador 2 
+    // Porque estamos sem tempo
+    ArenaPlayer p2 = g_players[1];
+    p1.DecreaseHeight(timeDiference,p2);
 }
 
 void SpectatorMode_Keys(double deltaTime)
@@ -531,6 +563,35 @@ void PrintVectors()
     printf("------------------------------\n");
 }
 
+
+void DrawArenaLights()
+{
+    GLfloat height = 250.0;
+
+    // Center
+    GLfloat light_position_center[] = { 0.0, (GLfloat) g_arena.GetPosition().GetY(), height, 1.0 };
+    glLightfv( GL_LIGHT0, GL_POSITION, light_position_center);
+
+    // Edges
+
+    // // Y
+    // GLfloat light_position_edge1[] = { 0.0, (GLfloat) (g_arena.GetRadius() -g_arena.GetPosition().GetY()), height, 1.0 };
+    // glLightfv( GL_LIGHT1, GL_POSITION, light_position_edge1);
+    // GLfloat light_position_edge2[] = { 0.0, (GLfloat) -(g_arena.GetRadius() + g_arena.GetPosition().GetY()), height, 1.0 };
+    // glLightfv( GL_LIGHT2, GL_POSITION, light_position_edge2);
+
+    // // // X
+    // GLfloat light_position_edge3[] = {(GLfloat) g_arena.GetRadius(), (GLfloat) -g_arena.GetPosition().GetY(), height, 1.0 };
+    // glLightfv( GL_LIGHT3, GL_POSITION, light_position_edge3);
+    // GLfloat light_position_edge4[] = { (GLfloat) -g_arena.GetRadius(), (GLfloat) -g_arena.GetPosition().GetY(), height, 1.0 };
+    // glLightfv( GL_LIGHT4, GL_POSITION, light_position_edge4);
+
+    // printf("\n========= LIGHT DEBUG =========\n");
+    // printf("Arena Radius : %.4f\n", g_arena.GetRadius());
+    // printf("Arena Pos Y  : %.4f\n", g_arena.GetPosition().GetY());
+
+}
+
 /**
  * @brief Renders OpenGL images.
  */
@@ -610,7 +671,46 @@ void renderScene(void)
     else
         ImprimePlacar(-VWidth * 0.05, VHeight * 0, game_winner);
 
-    // PrintVectors();
+            // g_players[0].GetDirection().PrintAttributes();
+            // printf("\n------------ CAMERA DEBUG ------------\n");
+
+            // printf(" camera_coords : (%.4f, %.4f, %.4f)\n", camera_coords[0], camera_coords[1], camera_coords[2]);
+            // printf(" player_direction : (%.4f, %.4f, %.4f)\n", g_players[0].GetDirection().GetX(), g_players[0].GetDirection().GetY(), g_players[0].GetDirection().GetZ());
+            // printf(" center  : (%.4f, %.4f, %.4f)\n", camera_coords[0] - g_players[0].GetDirection().GetX(), camera_coords[1] + g_players[0].GetDirection().GetY(), g_players[0].GetDirection().GetZ()  + PLAYER_HEIGHT );
+            // printf(" up : (%.4f, %.4f, %.4f)\n", camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+
+        }
+
+        DrawArenaLights();
+    
+        DrawAxes(100);
+
+        g_arena.DrawArena();
+
+        for ( CircularObstacle& obstacle : g_obstacles)
+        {
+            obstacle.DrawObstacle();
+        }
+        for ( ArenaPlayer& player : g_players)
+        {
+            if (game_winner == PLAYER1_WON && player.GetId() == PLAYER2_ID) continue;
+            if (game_winner == PLAYER2_WON && player.GetId() == PLAYER1_ID) continue;
+            if (game_winner == DRAW) break; // Does not draw any player
+            
+            player.DrawPlayer();
+            for ( Bullet& bullet : player.GetBulletVec())
+            {
+                bullet.DrawBullet();
+            }
+        }
+        if (!(game_finished))
+        {
+            ImprimePlacar(-VWidth*0.5,VHeight*0.45, PLACAR_PLAYER1);
+            ImprimePlacar(-VWidth*0.5,VHeight*0.40, PLACAR_PLAYER2);
+        }
+        else ImprimePlacar(-VWidth*0.05,VHeight*0, game_winner); 
+
+        // PrintVectors();
 
     glutSwapBuffers(); // Desenha the new frame of the game.
 }
@@ -639,7 +739,7 @@ void init_game(void)
     // Record Last Positions before start
     // Setting Up Character to look at each other
 
-    printf("Reiniciei o game\n");
+    // printf("Reiniciei o game\n");
     game_winner = NO_PLAYER;
     if (first_start)
     {
@@ -679,8 +779,9 @@ void init_game(void)
                 player.SetLastPosition(initial_players_pos[i]);
             }
             player.GetOrientation().SetYaw(initial_players_angle[i]); // puts in the start Yaw
-            player.Rotate(0);                                         // Updates Direction vector
-            player.SetGunYaw(0.0);                                    // puts in the start gun yaw
+            player.Rotate(0); // Updates Direction vector
+            player.SetGunYaw(0.0); // puts in the start gun yaw
+            player.SetGunPitch(0.0);
             player.SetMovingStatus(false);
             player.SetLastAnimationAttemptPosition(player.GetPosition());
         }
@@ -706,17 +807,82 @@ void keyPress(unsigned char key, int x, int y)
     // printf("Key : n:%d c:%c\n",key,key);
     switch (key)
     {
-    case '1':
-        camera_spectator_mode = !camera_spectator_mode;
-        break;
+        case 'y':
+        case 'Y':
+            camera_spectator_mode = !camera_spectator_mode;
+            break;
+        
+        case 'h':
+        case 'H':
+            toggle_player_camera = !toggle_player_camera;
+            if (toggle_player_camera) init_player1_camera();
+            else init_arena_camera();
+            break;
+        
+        case 'n':
+        case 'N':
+            toggle_light = !toggle_light;
+            if (toggle_light) glEnable(GL_LIGHTING);
+            else glDisable(GL_LIGHTING);
+            break;
+  
+        //------------------Player 1------------------//
+        case 'w':
+        case 'W':
+            keyStatus[(int)('w')] = 1; //Using keyStatus trick
+            break;
+        case 's':
+        case 'S':
+            keyStatus[(int)('s')] = 1; //Using keyStatus trick
+            break;
+        case 'a':
+        case 'A':
+            keyStatus[(int)('a')] = 1; //Using keyStatus trick
+            break;
+        case 'd':
+        case 'D':
+            keyStatus[(int)('d')] = 1; //Using keyStatus trick
+            break;
+        
+        case SPACE_BAR: // Barra de espaço
+            keyStatus[SPACE_BAR] = 1;
+            break;
 
-    case '2':
-        toggle_player_camera = !toggle_player_camera;
-        if (toggle_player_camera)
-            init_player1_camera();
-        else
-            init_arena_camera();
-        break;
+        //------------------Player 2------------------//
+        case 'o':
+        case 'O':
+            keyStatus[(int)('o')] = 1; //Using keyStatus trick
+            break;
+        case 'l':
+        case 'L':
+            keyStatus[(int)('l')] = 1; //Using keyStatus trick
+            break;
+        case 'k':
+        case 'K':
+            keyStatus[(int)('k')] = 1; //Using keyStatus trick
+            break;
+        case SPECIAL_KEY:
+        case CAPS_SPECIAL_KEY:
+            keyStatus[(int)(SPECIAL_KEY)] = 1; //Using keyStatus trick
+            break;
+        case '2':
+            keyStatus[(int)('2')] = 1; //Using keyStatus trick
+            break;
+        case '5':
+            keyStatus[(int)('5')] = 1; //Using keyStatus trick
+            break;
+        case '4':
+            keyStatus[(int)('4')] = 1; //Using keyStatus trick
+            break;
+        case '6':
+            keyStatus[(int)('6')] = 1; //Using keyStatus trick
+            break;
+        case '8':
+            keyStatus[(int)('8')] = 1; //Using keyStatus trick
+            break;
+        case '.':
+            keyStatus[(int)('.')] = 1; //Using keyStatus trick
+            break;
 
     //------------------Player 1------------------//
     case 'w':
@@ -837,6 +1003,9 @@ void idle(void)
 
         glutPostRedisplay();
     }
+
+    gPastMouseX = gCurrentMouseX;
+    gPastMouseY = gCurrentMouseY;
 }
 
 void gl_init(void)
@@ -847,8 +1016,14 @@ void gl_init(void)
     // glShadeModel (GL_FLAT);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_CULL_FACE);
-    // glEnable(GL_LIGHTING);
-    // glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHTING);
+
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+    glEnable(GL_LIGHT2);
+    glEnable(GL_LIGHT3);
+    glEnable(GL_LIGHT4);
+
     glEnable(GL_DEPTH_TEST);
     glViewport(
         0,
@@ -865,6 +1040,19 @@ void gl_init(void)
 
     // // The color the windows will redraw. Its done to erase the previous frame.
     // glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black, no opacity(alpha).
+ 
+    // glMatrixMode(GL_PROJECTION); // Select the projection matrix    
+    // glOrtho(-(VWidth/2),     // X coordinate of left edge             
+    //         (VWidth/2),     // X coordinate of right edge            
+    //         -(VHeight/2), //-(VHeight/2)     // Y coordinate of bottom edge            
+    //         (VHeight/2),// (VHeight/2)     // Y coordinate of top edge
+    //         -100,     // Z coordinate of the “near” plane            
+    //         100);    // Z coordinate of the “far” plane
+    // glMatrixMode(GL_MODELVIEW); // Select the projection matrix    
+    // glLoadIdentity();
+    toggle_light = !toggle_light;
+    toggle_texture = !toggle_texture;
+}
 
     // glMatrixMode(GL_PROJECTION); // Select the projection matrix
     // glOrtho(-(VWidth/2),     // X coordinate of left edge
