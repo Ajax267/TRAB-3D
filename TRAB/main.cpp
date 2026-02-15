@@ -8,6 +8,7 @@
 #include "arena_obstacles.h"
 #include "player.h"
 #include "bullet.h"
+#include "objloader.h"
 
 #include <vector>
 #include <string>
@@ -110,6 +111,14 @@ float camera_coords[3] = {0.0,2.0,5.0};
 float look_camera_coords[3] = {0.0,0.0,0.0};
 float camXZAngle = 0;
 float camXYAngle = 0;
+
+//Meshes
+meshes g_soldado;
+bool g_drawSoldado = true;
+int g_movIdle = -1;
+float g_modelScale = 1.0f;
+float g_modelRotX  = 90.0f;  
+float g_modelRotZ  = 180.0f;
 
 /**
  * @brief Updates Mouse coordinates.
@@ -485,7 +494,7 @@ void renderScene(void)
             camera_coords[0] + look_camera_coords[0],
             camera_coords[1] + look_camera_coords[1],
             camera_coords[2] + look_camera_coords[2],
-            0,1,0
+            0,0,1
         );
     
         // GLfloat light_position[] = { light_x, light_y, light_z, 1.0 };
@@ -866,7 +875,7 @@ int main(int argc, char *argv[])
     // Initialize openGL with Double buffer and RGB color without transparency.
     // Its interesting to try GLUT_SINGLE instead of GLUT_DOUBLE.
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
  
     // Create the window.
     glutInitWindowSize(Width, Height);
@@ -885,6 +894,11 @@ int main(int argc, char *argv[])
     glutMouseFunc(mouseClick);
     glutMotionFunc(globalmouseMotion);
     glutPassiveMotionFunc(globalmouseMotion);
+
+    g_movIdle = g_soldado.loadMeshAnim("Blender/idle/soldado_idle_####.obj", 1);
+    g_soldado.loadTexture("Blender/textura_soldado.bmp");
+    g_soldado.drawInit(g_movIdle);
+
 
     init_game();
     gl_init();
