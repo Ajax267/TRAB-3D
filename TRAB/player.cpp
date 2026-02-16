@@ -171,20 +171,21 @@ void ArenaPlayer::DrawArm()
 void ArenaPlayer::DrawBody()
 {
     glPushMatrix();
-    DrawCilinder(
-        this->GetRadius(),
-        PLAYER_HEIGHT,
-        this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB(),
-        PLAYER_RES);
-    // DrawEllipseWithBorder(
-    //     BODY_X_RADIUS_MULTIPLER*this->GetRadius(),
-    //     (BODY_X_RADIUS_MULTIPLER/4.0)*this->GetRadius(),
-    //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
-    // );
-    // DrawCircWithBorder(
-    //     this->GetRadius(),
-    //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
-    // );
+        DrawClosedCilinder(
+            this->GetRadius(),
+            PLAYER_HEIGHT,
+            this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
+            PLAYER_RES
+        );
+        // DrawEllipseWithBorder(
+        //     BODY_X_RADIUS_MULTIPLER*this->GetRadius(),
+        //     (BODY_X_RADIUS_MULTIPLER/4.0)*this->GetRadius(),
+        //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
+        // );
+        // DrawCircWithBorder(
+        //     this->GetRadius(),
+        //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
+        // );
     glPopMatrix();
 }
 
@@ -203,7 +204,7 @@ void ArenaPlayer::DrawPlayer()
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_LIGHTING);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
-            DrawCilinder(this->GetRadius(), PLAYER_HEIGHT, 1, 1, 0, PLAYER_RES);
+            DrawClosedCilinder(this->GetRadius(), PLAYER_HEIGHT, 1, 1, 0, PLAYER_RES);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopAttrib();
         }
