@@ -227,6 +227,10 @@ void normalize_3d(float a[3]);
 void cross_product_3d(float a[3], float b[3], float out[3]);
 void vector_3d_difference(float a[3], float b[3], float out[3]);
 void dot_product_3d(float a[3], float b[3], float out[3]);
+GLuint LoadTextureRAW( const char * filename );
+void DrawTexturedFloor(float radius, float z_position, GLuint textureID);
+void DrawTexturedCylinder(float radius, float height, GLuint textureID);
+void DrawTexturedCylinderOutside(float radius, float height, GLuint textureID);
 
 void ChangeCoordSys(
     GLdouble ax, GLdouble ay, GLdouble az,

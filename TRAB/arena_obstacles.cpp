@@ -1,4 +1,7 @@
 #include "arena_obstacles.h"
+extern GLuint g_texturaObstaculo;
+extern bool toggle_texture;
+
 
 void CircularObstacle::DrawObstacle()
 {
@@ -8,15 +11,30 @@ void CircularObstacle::DrawObstacle()
             -this->GetPosition().GetY(),
             0
         );
-        DrawClosedCilinder(
-            this->GetRadius(),
-            this->GetHeight(),
-            this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
-            CIRCULAR_OBSTACLE_RES
-        );
-        // DrawCirc(
-        //     this->GetRadius(),
-        //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
-        // );
+
+        if (toggle_texture)
+        {
+            DrawTexturedCylinderOutside(
+                this->GetRadius(),
+                this->GetHeight(),
+                g_texturaObstaculo
+            );
+
+            DrawTexturedFloor(
+                this->GetRadius(), 
+                this->GetHeight(), 
+                g_texturaObstaculo
+            );
+        }
+        else
+        {
+            DrawClosedCilinder(
+                this->GetRadius(),
+                this->GetHeight(),
+                this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
+                CIRCULAR_OBSTACLE_RES
+            );
+        }
+
     glPopMatrix();
 }

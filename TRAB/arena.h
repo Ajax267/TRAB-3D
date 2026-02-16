@@ -31,6 +31,7 @@ class CircularArena : public CircleDefinition
 
         const float& GetHeight() const {return this->height;};
         void SetHeight(float height) {this->height=height;};
+        
     
 };
 
