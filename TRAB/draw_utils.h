@@ -25,7 +25,7 @@ void DrawRectWithBorder(
 void DrawCirc(
     GLint radius,
     GLfloat R, GLfloat G,GLfloat B,
-    bool points = false,
+    int draw_mode,
     double circle_res = CIRCULE_RES
 );
 void DrawCircWithBorder(

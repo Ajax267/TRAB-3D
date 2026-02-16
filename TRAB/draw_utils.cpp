@@ -42,16 +42,16 @@ void DrawRectWithBorder(
 void DrawCirc(
     GLint radius,
     GLfloat R, GLfloat G, GLfloat B,
-    bool points,
+    int draw_mode,
     double circle_res
 )
 {
-    if (points) glBegin(GL_POINTS);
-    else glBegin(GL_POLYGON);
+    glColor3f (R, G, B);
+    glBegin(draw_mode);
         for (double i = 0.0; i <= CIRCLE_DEGREES; i+= (CIRCLE_DEGREES/circle_res) )
         {
-            if (points) glPointSize(POINT_SIZE);
-            glColor3f (R, G, B);
+            
+            if (draw_mode == GL_POINTS) glPointSize(POINT_SIZE);
             glVertex3f (radius * cos(i*RADIANS), radius * sin(i*RADIANS), 0.0);
         }
    glEnd();

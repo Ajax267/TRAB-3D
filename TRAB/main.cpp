@@ -8,6 +8,7 @@
 #include "arena_obstacles.h"
 #include "player.h"
 #include "bullet.h"
+#include "minimap.h"
 
 #include <vector>
 #include <string>
@@ -59,6 +60,7 @@ std::vector<double> initial_players_angle;
 CircularArena g_arena;
 std::vector<CircularObstacle> g_obstacles;
 std::vector<ArenaPlayer> g_players;
+Minimap g_minimap = Minimap();
 
 GLdouble last_animation_attempt_time = 0;
 std::vector<PositionDefinition> last_players_recorded_pos;
@@ -130,7 +132,7 @@ bool toggle_texture = false;
 bool night_mode = false;
 
 // Enable Multi Viewport
-bool multiviewport = false;
+bool multiviewport = true;
 
 
 /**
@@ -672,7 +674,7 @@ void ImprimePlacar(GLfloat x, GLfloat y, int player)
 {
 
     //Cria a string a ser impressa
-    double r = 1.0, g = 1.0, b = 1.0; 
+    double r = 0.0, g = 1.0, b = 0.0; 
     if (game_winner == NO_PLAYER)
     {
         sprintf(str, "P%d Health: %d",player, g_players[player-1].GetHealth());
@@ -756,6 +758,41 @@ void DrawArenaLights()
     // printf("Arena Radius : %.4f\n", g_arena.GetRadius());
     // printf("Arena Pos Y  : %.4f\n", g_arena.GetPosition().GetY());
 
+}
+
+
+
+/**
+ * @brief Renders Minimap HUD.
+ */
+void renderMinimap(int player_id)
+{
+    //Draw text considering a 2D space (disable all 3d features)
+    glMatrixMode (GL_PROJECTION);
+    //Push to recover original PROJECTION MATRIX
+    glPushMatrix();
+        glLoadIdentity();
+        // Peguei o glOrtho do Trabalho anterior
+        // Para não me preocupar com a conversão de nada
+        glOrtho(
+            -(VWidth/2),     // X coordinate of left edge             
+            (VWidth/2),     // X coordinate of right edge            
+            -(VHeight/2), //-(VHeight/2)     // Y coordinate of bottom edge            
+            (VHeight/2),// (VHeight/2)     // Y coordinate of top edge
+            -1,  // Z coordinate of the “near” plane            
+            1
+        );
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+            glLoadIdentity();
+            glDisable(GL_LIGHTING);
+            g_minimap.DrawMinimap(player_id);
+            glEnable(GL_LIGHTING);
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+
+    glPopMatrix();
+    glMatrixMode (GL_MODELVIEW);
 }
 
 
@@ -947,6 +984,7 @@ void renderViewports(void)
     glClear (   GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         if (multiviewport)
         {
+            // Cameras Dinamicas Dos Personagens
             glViewport (
                 0,
                 0,
@@ -963,7 +1001,9 @@ void renderViewports(void)
             );
             renderScene(PLAYER2_ID);
 
+            // Cameras Fixas Do Olho
             changeCameraType(EYE_CAMERA);
+
             glViewport (
                 0,
                 (GLsizei) Height * (5.0/7.0),
@@ -980,6 +1020,24 @@ void renderViewports(void)
             );
             renderScene(PLAYER2_ID,true,EYE_CAMERA);
 
+            // Minimapas
+
+            glViewport (
+                (GLsizei) (Width/2.0) * (3.0/4.0),
+                0,
+                (GLsizei) Width/2.0 * (1.0/4.0), 
+                (GLsizei) Height * (5.0/7.0)  * (1.0/4.0)
+            );
+            renderMinimap(PLAYER1_ID);
+
+            glViewport (
+                (GLsizei) Width * (3.5/4.0), // ou (Width/2.0) + (Width/2.0) * (3.0/4.0),
+                0,
+                (GLsizei) Width/2.0 * (1.0/4.0), 
+                (GLsizei) Height * (5.0/7.0)  * (1.0/4.0)
+            );
+            renderMinimap(PLAYER2_ID);
+
             //Reset Camera settings
             changeCameraType(camera_type_num);
         }
@@ -992,6 +1050,14 @@ void renderViewports(void)
             (GLsizei) Height
         );
         renderScene(PLAYER1_ID); 
+
+        glViewport (
+            (GLsizei) Width * (3.0/4.0),
+            0,
+            (GLsizei) Width * (1.0/4.0), 
+            (GLsizei) Height * (1.0/4.0)
+        );
+        renderMinimap(PLAYER1_ID);
     }
 
 
@@ -1398,6 +1464,12 @@ int main(int argc, char *argv[])
 
     int result = load_svg(argv[1]);
     if (result) return result;
+    g_minimap.SetArena(g_arena);
+    g_minimap.SetObstaclesVec(g_obstacles);
+    g_minimap.SetPlayersVec(g_players);
+
+    // Viewing Height=Width = Arena Diamater
+    VHeight=VWidth=2*g_arena.GetRadius(); //Useful for orthogonal cam
 
     // Initialize openGL with Double buffer and RGB color without transparency.
     // Its interesting to try GLUT_SINGLE instead of GLUT_DOUBLE.
@@ -1408,9 +1480,6 @@ int main(int argc, char *argv[])
     glutInitWindowSize(Width, Height);
     glutInitWindowPosition(150,50);
     glutCreateWindow("Joguin 3D");
-
-    // Viewing Height=Width = Arena Diamater
-    VHeight=VWidth=2*g_arena.GetRadius();
 
     // Define callbacks.
     glutDisplayFunc(renderViewports);
