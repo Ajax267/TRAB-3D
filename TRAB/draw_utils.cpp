@@ -183,7 +183,33 @@ void DrawObj(double size)
    glutSolidCube(size);
 }
 
-void DrawCilinder(GLdouble radius, GLdouble height, GLfloat r, GLfloat g, GLfloat b, GLint slices_stacks)
+void DrawOpenCilinder(GLdouble radius, GLdouble height, GLfloat r, GLfloat g, GLfloat b, GLint slices_stacks)
+{
+    GLfloat materialEmission[] = { 0.00, 0.00, 0.00, 1.0};
+    GLfloat ambientColor[] = { r, g, b, 0.1};
+    GLfloat diffuseColor[] = { r, g, b, 1.0};
+    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0};
+    GLfloat mat_shininess[] = { 128 };
+    glMaterialfv(GL_FRONT, GL_EMISSION, materialEmission);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientColor);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseColor);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+    glColor3f(r,g,b);
+
+    glPushMatrix();
+        GLUquadric* quadratic = gluNewQuadric();
+        // gluQuadricOrientation(quadratic, GLU_INSIDE);
+        gluQuadricNormals(quadratic, GLU_SMOOTH);
+
+        // Lateral
+        gluCylinder(quadratic,radius,radius,height,slices_stacks,slices_stacks);
+
+        gluDeleteQuadric(quadratic);
+    glPopMatrix();
+}
+
+void DrawClosedCilinder(GLdouble radius, GLdouble height, GLfloat r, GLfloat g, GLfloat b, GLint slices_stacks)
 {
     GLfloat materialEmission[] = { 0.00, 0.00, 0.00, 1.0};
     GLfloat ambientColor[] = { r, g, b, 0.1};

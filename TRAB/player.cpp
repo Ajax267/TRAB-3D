@@ -138,7 +138,7 @@ void ArenaPlayer::DrawArm()
 void ArenaPlayer::DrawBody()
 {
     glPushMatrix();
-        DrawCilinder(
+        DrawClosedCilinder(
             this->GetRadius(),
             PLAYER_HEIGHT,
             this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
