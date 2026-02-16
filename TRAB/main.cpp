@@ -115,15 +115,20 @@ float camXYAngle = 0;
 
 // Meshes
 meshes g_soldado;
-bool g_drawSoldado = true;
+bool g_drawSoldado = false;
 int g_movIdle = -1;
 int g_movWalking = -1;
 float g_modelScale = 0.5f;
 float g_modelRotX = 90.0f;
 float g_modelRotZ = 180.0f;
-//Disable Features
+
+meshes g_arma;
+int movArma = -1;
+// Disable Features
 int toggle_light = 0;
 int toggle_texture = 0;
+
+bool g_debugCompareModel = true;
 
 void init_player1_camera(void)
 {
@@ -326,19 +331,18 @@ void Player2_Keys(GLdouble timeDiference, GLdouble currentTime)
     {
         p2.RotateGunRoll(-timeDiference * MOUSE_SENSITIVY);
     }
-    if  (keyStatus[(int)('8')])
+    if (keyStatus[(int)('8')])
     {
         p2.RotateGunRoll(timeDiference * MOUSE_SENSITIVY);
     }
 
+    p2.IncreaseHeight(timeDiference, keyStatus[(int)'.']);
 
-    p2.IncreaseHeight(timeDiference,keyStatus[(int)'.']);
-
-    // Queria fazer genérico, mas vai ficar hardcoded como jogador 2 
+    // Queria fazer genérico, mas vai ficar hardcoded como jogador 2
     // Porque estamos sem tempo
     ArenaPlayer p1 = g_players[0];
-    p2.DecreaseHeight(timeDiference,p1);
-    p2.UpdateDecayType(g_arena,g_obstacles,g_players);
+    p2.DecreaseHeight(timeDiference, p1);
+    p2.UpdateDecayType(g_arena, g_obstacles, g_players);
 }
 
 /**
@@ -385,33 +389,33 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
 
     // printf("Current Mouse X %.2f\n",gCurrentMouseX);
     // printf("Past Mouse X %.2f\n",gPastMouseX);
-    double mouse_x_angle = gCurrentMouseX-gPastMouseX;
-    if ( mouse_x_angle < 0)
+    double mouse_x_angle = gCurrentMouseX - gPastMouseX;
+    if (mouse_x_angle < 0)
     {
         p1.RotateGunYaw(timeDiference * MOUSE_SENSITIVY);
     }
-    if  ( mouse_x_angle > 0)
+    if (mouse_x_angle > 0)
     {
         p1.RotateGunYaw(-timeDiference * MOUSE_SENSITIVY);
     }
 
-    double mouse_y_angle = gCurrentMouseY-gPastMouseY;
-    if ( mouse_y_angle < 0)
+    double mouse_y_angle = gCurrentMouseY - gPastMouseY;
+    if (mouse_y_angle < 0)
     {
         p1.RotateGunRoll(-timeDiference * MOUSE_SENSITIVY);
     }
-    if  ( mouse_y_angle > 0)
+    if (mouse_y_angle > 0)
     {
         p1.RotateGunRoll(timeDiference * MOUSE_SENSITIVY);
     }
 
-    p1.UpdateDecayType(g_arena,g_obstacles,g_players);
-    p1.IncreaseHeight(timeDiference,keyStatus[SPACE_BAR]);
+    p1.UpdateDecayType(g_arena, g_obstacles, g_players);
+    p1.IncreaseHeight(timeDiference, keyStatus[SPACE_BAR]);
 
-    // Queria fazer genérico, mas vai ficar hardcoded como jogador 2 
+    // Queria fazer genérico, mas vai ficar hardcoded como jogador 2
     // Porque estamos sem tempo
     ArenaPlayer p2 = g_players[1];
-    p1.DecreaseHeight(timeDiference,p2);
+    p1.DecreaseHeight(timeDiference, p2);
 }
 
 void SpectatorMode_Keys(double deltaTime)
@@ -563,14 +567,13 @@ void PrintVectors()
     printf("------------------------------\n");
 }
 
-
 void DrawArenaLights()
 {
     GLfloat height = 250.0;
 
     // Center
-    GLfloat light_position_center[] = { 0.0, (GLfloat) g_arena.GetPosition().GetY(), height, 1.0 };
-    glLightfv( GL_LIGHT0, GL_POSITION, light_position_center);
+    GLfloat light_position_center[] = {0.0, (GLfloat)g_arena.GetPosition().GetY(), height, 1.0};
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position_center);
 
     // Edges
 
@@ -589,7 +592,6 @@ void DrawArenaLights()
     // printf("\n========= LIGHT DEBUG =========\n");
     // printf("Arena Radius : %.4f\n", g_arena.GetRadius());
     // printf("Arena Pos Y  : %.4f\n", g_arena.GetPosition().GetY());
-
 }
 
 /**
@@ -669,48 +671,52 @@ void renderScene(void)
         ImprimePlacar(-VWidth * 0.5, VHeight * 0.40, PLACAR_PLAYER2);
     }
     else
+    {
         ImprimePlacar(-VWidth * 0.05, VHeight * 0, game_winner);
 
-            // g_players[0].GetDirection().PrintAttributes();
-            // printf("\n------------ CAMERA DEBUG ------------\n");
+        // g_players[0].GetDirection().PrintAttributes();
+        // printf("\n------------ CAMERA DEBUG ------------\n");
 
-            // printf(" camera_coords : (%.4f, %.4f, %.4f)\n", camera_coords[0], camera_coords[1], camera_coords[2]);
-            // printf(" player_direction : (%.4f, %.4f, %.4f)\n", g_players[0].GetDirection().GetX(), g_players[0].GetDirection().GetY(), g_players[0].GetDirection().GetZ());
-            // printf(" center  : (%.4f, %.4f, %.4f)\n", camera_coords[0] - g_players[0].GetDirection().GetX(), camera_coords[1] + g_players[0].GetDirection().GetY(), g_players[0].GetDirection().GetZ()  + PLAYER_HEIGHT );
-            // printf(" up : (%.4f, %.4f, %.4f)\n", camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+        // printf(" camera_coords : (%.4f, %.4f, %.4f)\n", camera_coords[0], camera_coords[1], camera_coords[2]);
+        // printf(" player_direction : (%.4f, %.4f, %.4f)\n", g_players[0].GetDirection().GetX(), g_players[0].GetDirection().GetY(), g_players[0].GetDirection().GetZ());
+        // printf(" center  : (%.4f, %.4f, %.4f)\n", camera_coords[0] - g_players[0].GetDirection().GetX(), camera_coords[1] + g_players[0].GetDirection().GetY(), g_players[0].GetDirection().GetZ()  + PLAYER_HEIGHT );
+        // printf(" up : (%.4f, %.4f, %.4f)\n", camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+    }
 
-        }
+    DrawArenaLights();
 
-        DrawArenaLights();
-    
-        DrawAxes(100);
+    DrawAxes(100);
 
-        g_arena.DrawArena();
+    g_arena.DrawArena();
 
-        for ( CircularObstacle& obstacle : g_obstacles)
+    for (CircularObstacle &obstacle : g_obstacles)
+    {
+        obstacle.DrawObstacle();
+    }
+    for (ArenaPlayer &player : g_players)
+    {
+        if (game_winner == PLAYER1_WON && player.GetId() == PLAYER2_ID)
+            continue;
+        if (game_winner == PLAYER2_WON && player.GetId() == PLAYER1_ID)
+            continue;
+        if (game_winner == DRAW)
+            break; // Does not draw any player
+
+        player.DrawPlayer();
+        for (Bullet &bullet : player.GetBulletVec())
         {
-            obstacle.DrawObstacle();
+            bullet.DrawBullet();
         }
-        for ( ArenaPlayer& player : g_players)
-        {
-            if (game_winner == PLAYER1_WON && player.GetId() == PLAYER2_ID) continue;
-            if (game_winner == PLAYER2_WON && player.GetId() == PLAYER1_ID) continue;
-            if (game_winner == DRAW) break; // Does not draw any player
-            
-            player.DrawPlayer();
-            for ( Bullet& bullet : player.GetBulletVec())
-            {
-                bullet.DrawBullet();
-            }
-        }
-        if (!(game_finished))
-        {
-            ImprimePlacar(-VWidth*0.5,VHeight*0.45, PLACAR_PLAYER1);
-            ImprimePlacar(-VWidth*0.5,VHeight*0.40, PLACAR_PLAYER2);
-        }
-        else ImprimePlacar(-VWidth*0.05,VHeight*0, game_winner); 
+    }
+    if (!(game_finished))
+    {
+        ImprimePlacar(-VWidth * 0.5, VHeight * 0.45, PLACAR_PLAYER1);
+        ImprimePlacar(-VWidth * 0.5, VHeight * 0.40, PLACAR_PLAYER2);
+    }
+    else
+        ImprimePlacar(-VWidth * 0.05, VHeight * 0, game_winner);
 
-        // PrintVectors();
+    // PrintVectors();
 
     glutSwapBuffers(); // Desenha the new frame of the game.
 }
@@ -779,8 +785,8 @@ void init_game(void)
                 player.SetLastPosition(initial_players_pos[i]);
             }
             player.GetOrientation().SetYaw(initial_players_angle[i]); // puts in the start Yaw
-            player.Rotate(0); // Updates Direction vector
-            player.SetGunYaw(0.0); // puts in the start gun yaw
+            player.Rotate(0);                                         // Updates Direction vector
+            player.SetGunYaw(0.0);                                    // puts in the start gun yaw
             player.SetGunPitch(0.0);
             player.SetMovingStatus(false);
             player.SetLastAnimationAttemptPosition(player.GetPosition());
@@ -807,82 +813,28 @@ void keyPress(unsigned char key, int x, int y)
     // printf("Key : n:%d c:%c\n",key,key);
     switch (key)
     {
-        case 'y':
-        case 'Y':
-            camera_spectator_mode = !camera_spectator_mode;
-            break;
-        
-        case 'h':
-        case 'H':
-            toggle_player_camera = !toggle_player_camera;
-            if (toggle_player_camera) init_player1_camera();
-            else init_arena_camera();
-            break;
-        
-        case 'n':
-        case 'N':
-            toggle_light = !toggle_light;
-            if (toggle_light) glEnable(GL_LIGHTING);
-            else glDisable(GL_LIGHTING);
-            break;
-  
-        //------------------Player 1------------------//
-        case 'w':
-        case 'W':
-            keyStatus[(int)('w')] = 1; //Using keyStatus trick
-            break;
-        case 's':
-        case 'S':
-            keyStatus[(int)('s')] = 1; //Using keyStatus trick
-            break;
-        case 'a':
-        case 'A':
-            keyStatus[(int)('a')] = 1; //Using keyStatus trick
-            break;
-        case 'd':
-        case 'D':
-            keyStatus[(int)('d')] = 1; //Using keyStatus trick
-            break;
-        
-        case SPACE_BAR: // Barra de espaço
-            keyStatus[SPACE_BAR] = 1;
-            break;
+    case 'y':
+    case 'Y':
+        camera_spectator_mode = !camera_spectator_mode;
+        break;
 
-        //------------------Player 2------------------//
-        case 'o':
-        case 'O':
-            keyStatus[(int)('o')] = 1; //Using keyStatus trick
-            break;
-        case 'l':
-        case 'L':
-            keyStatus[(int)('l')] = 1; //Using keyStatus trick
-            break;
-        case 'k':
-        case 'K':
-            keyStatus[(int)('k')] = 1; //Using keyStatus trick
-            break;
-        case SPECIAL_KEY:
-        case CAPS_SPECIAL_KEY:
-            keyStatus[(int)(SPECIAL_KEY)] = 1; //Using keyStatus trick
-            break;
-        case '2':
-            keyStatus[(int)('2')] = 1; //Using keyStatus trick
-            break;
-        case '5':
-            keyStatus[(int)('5')] = 1; //Using keyStatus trick
-            break;
-        case '4':
-            keyStatus[(int)('4')] = 1; //Using keyStatus trick
-            break;
-        case '6':
-            keyStatus[(int)('6')] = 1; //Using keyStatus trick
-            break;
-        case '8':
-            keyStatus[(int)('8')] = 1; //Using keyStatus trick
-            break;
-        case '.':
-            keyStatus[(int)('.')] = 1; //Using keyStatus trick
-            break;
+    case 'h':
+    case 'H':
+        toggle_player_camera = !toggle_player_camera;
+        if (toggle_player_camera)
+            init_player1_camera();
+        else
+            init_arena_camera();
+        break;
+
+    case 'n':
+    case 'N':
+        toggle_light = !toggle_light;
+        if (toggle_light)
+            glEnable(GL_LIGHTING);
+        else
+            glDisable(GL_LIGHTING);
+        break;
 
     //------------------Player 1------------------//
     case 'w':
@@ -902,6 +854,10 @@ void keyPress(unsigned char key, int x, int y)
         keyStatus[(int)('d')] = 1; // Using keyStatus trick
         break;
 
+    case SPACE_BAR: // Barra de espaço
+        keyStatus[SPACE_BAR] = 1;
+        break;
+
     //------------------Player 2------------------//
     case 'o':
     case 'O':
@@ -919,6 +875,9 @@ void keyPress(unsigned char key, int x, int y)
     case CAPS_SPECIAL_KEY:
         keyStatus[(int)(SPECIAL_KEY)] = 1; // Using keyStatus trick
         break;
+    case '2':
+        keyStatus[(int)('2')] = 1; // Using keyStatus trick
+        break;
     case '5':
         keyStatus[(int)('5')] = 1; // Using keyStatus trick
         break;
@@ -927,6 +886,30 @@ void keyPress(unsigned char key, int x, int y)
         break;
     case '6':
         keyStatus[(int)('6')] = 1; // Using keyStatus trick
+        break;
+    case '8':
+        keyStatus[(int)('8')] = 1; // Using keyStatus trick
+        break;
+    case '.':
+        keyStatus[(int)('.')] = 1; // Using keyStatus trick
+        break;
+
+    case 'c':
+    case 'C':
+        g_debugCompareModel = !g_debugCompareModel;
+        printf("!compare = %d\n", g_debugCompareModel);
+        break;
+
+    case 'z': // aumenta escala
+    case 'Z':
+        g_modelScale *= 1.05f;
+        printf("g_modelScale = %.4f\n", g_modelScale);
+        break;
+
+    case 'x': // diminui escala
+    case 'X':
+        g_modelScale /= 1.05f;
+        printf("g_modelScale = %.4f\n", g_modelScale);
         break;
 
     //------------------Game------------------//
@@ -1040,19 +1023,6 @@ void gl_init(void)
 
     // // The color the windows will redraw. Its done to erase the previous frame.
     // glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black, no opacity(alpha).
- 
-    // glMatrixMode(GL_PROJECTION); // Select the projection matrix    
-    // glOrtho(-(VWidth/2),     // X coordinate of left edge             
-    //         (VWidth/2),     // X coordinate of right edge            
-    //         -(VHeight/2), //-(VHeight/2)     // Y coordinate of bottom edge            
-    //         (VHeight/2),// (VHeight/2)     // Y coordinate of top edge
-    //         -100,     // Z coordinate of the “near” plane            
-    //         100);    // Z coordinate of the “far” plane
-    // glMatrixMode(GL_MODELVIEW); // Select the projection matrix    
-    // glLoadIdentity();
-    toggle_light = !toggle_light;
-    toggle_texture = !toggle_texture;
-}
 
     // glMatrixMode(GL_PROJECTION); // Select the projection matrix
     // glOrtho(-(VWidth/2),     // X coordinate of left edge
@@ -1063,6 +1033,8 @@ void gl_init(void)
     //         100);    // Z coordinate of the “far” plane
     // glMatrixMode(GL_MODELVIEW); // Select the projection matrix
     // glLoadIdentity();
+    toggle_light = !toggle_light;
+    toggle_texture = !toggle_texture;
 }
 
 /**
@@ -1181,6 +1153,9 @@ int main(int argc, char *argv[])
     g_soldado.loadTexture("Blender/textura_soldado.bmp");
     g_soldado.drawInit(g_movIdle);
 
+    movArma = g_arma.loadMeshAnim("Blender/model_arma_####.obj", 1);
+    g_arma.loadTexture("Blender/textura_arma.bmp");
+    g_arma.drawInit(movArma);
     init_game();
     gl_init();
     glutMainLoop();

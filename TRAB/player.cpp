@@ -1,11 +1,21 @@
 #include "player.h"
 #include "objloader.h"
+#include "utils.h"
 
 extern meshes g_soldado;
 extern bool g_drawSoldado;
 extern int g_movIdle;
 extern int g_movWalking;
 extern float g_modelScale, g_modelRotX, g_modelRotZ;
+
+extern meshes g_arma;
+extern int movArma;
+
+extern bool g_debugCompareModel;
+
+static const int IDX_HAND_POS = 9263;
+static const int IDX_HAND_AIM = 8480;
+static const int IDX_HAND_UP = -1;
 
 //----------Drawing------------//
 
@@ -112,6 +122,16 @@ void ArenaPlayer::DrawPlayer()
 
     if (g_drawSoldado)
     {
+        if (g_debugCompareModel)
+        {
+            glPushAttrib(GL_ENABLE_BIT | GL_POLYGON_BIT);
+            glDisable(GL_TEXTURE_2D);
+            glDisable(GL_LIGHTING);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
+            DrawCilinder(this->GetRadius(), PLAYER_HEIGHT, 1, 1, 0, PLAYER_RES);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glPopAttrib();
+        }
         glPushMatrix();
 
         glRotatef(g_modelRotZ, 0, 0, 1);
@@ -128,6 +148,30 @@ void ArenaPlayer::DrawPlayer()
         }
 
         g_soldado.draw(mov, frame);
+
+        mesh &m = g_soldado.vecMeshes[mov][frame];
+        glPushMatrix();
+        float upx = 0, upy = 0, upz = 1; // fallback
+        if (IDX_HAND_UP >= 0)
+        {
+            upx = m.vertsPos[IDX_HAND_UP].x - m.vertsPos[IDX_HAND_POS].x;
+            upy = m.vertsPos[IDX_HAND_UP].y - m.vertsPos[IDX_HAND_POS].y;
+            upz = m.vertsPos[IDX_HAND_UP].z - m.vertsPos[IDX_HAND_POS].z;
+        }
+
+        ChangeCoordSys(
+            m.vertsPos[IDX_HAND_AIM].x, m.vertsPos[IDX_HAND_AIM].y, m.vertsPos[IDX_HAND_AIM].z,
+            m.vertsPos[IDX_HAND_POS].x, m.vertsPos[IDX_HAND_POS].y, m.vertsPos[IDX_HAND_POS].z,
+            upx, upy, upz);
+
+        // 4) ajustes finos (sempre precisa)
+        // exemplo: alinhar cabo, deslocar pra palma, escalar
+        // glRotatef(...);
+        // glTranslatef(...);
+        // glScalef(...);
+
+        g_arma.draw(movArma, 0);
+        glPopMatrix();
         glPopMatrix();
     }
     else

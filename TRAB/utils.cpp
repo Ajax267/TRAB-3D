@@ -182,3 +182,37 @@ void dot_product_3d(float a[3], float b[3], float out[3])
     out[1] = a[1]*b[1];
     out[2] = a[2]*b[2];
 }
+
+
+void ChangeCoordSys(
+    GLdouble ax, GLdouble ay, GLdouble az,
+    GLdouble bx, GLdouble by, GLdouble bz,
+    GLdouble upx, GLdouble upy, GLdouble upz
+)
+{
+    float x[3], y[3], z[3];
+    float m[16] = {
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,0,1
+    };
+
+    y[0] = ax - bx; y[1] = ay - by; y[2] = az - bz;
+    normalize_3d(y);
+
+    float up[3] = {upx, upy, upz};
+    normalize_3d(up);
+
+    cross_product_3d(y, up, x);
+    normalize_3d(x);
+
+    cross_product_3d(x, y, z);
+    normalize_3d(z);
+
+    m[0] = x[0]; m[4] = y[0]; m[8]  = z[0]; m[12] = bx;
+    m[1] = x[1]; m[5] = y[1]; m[9]  = z[1]; m[13] = by;
+    m[2] = x[2]; m[6] = y[2]; m[10] = z[2]; m[14] = bz;
+
+    glMultMatrixf(m);
+}

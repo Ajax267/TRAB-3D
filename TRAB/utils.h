@@ -228,4 +228,10 @@ void cross_product_3d(float a[3], float b[3], float out[3]);
 void vector_3d_difference(float a[3], float b[3], float out[3]);
 void dot_product_3d(float a[3], float b[3], float out[3]);
 
+void ChangeCoordSys(
+    GLdouble ax, GLdouble ay, GLdouble az,
+    GLdouble bx, GLdouble by, GLdouble bz,
+    GLdouble upx, GLdouble upy, GLdouble upz
+);
+
 #endif
