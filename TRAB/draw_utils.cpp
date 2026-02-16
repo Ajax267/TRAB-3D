@@ -187,7 +187,7 @@ void DrawOpenCilinder(GLdouble radius, GLdouble height, GLfloat r, GLfloat g, GL
 {
     GLfloat materialEmission[] = { 0.00, 0.00, 0.00, 1.0};
     GLfloat ambientColor[] = { r, g, b, 0.1};
-    GLfloat diffuseColor[] = { r, g, b, 1.0};
+    GLfloat diffuseColor[] = { r, g, b, 0.5};
     GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0};
     GLfloat mat_shininess[] = { 128 };
     glMaterialfv(GL_FRONT, GL_EMISSION, materialEmission);
@@ -199,7 +199,7 @@ void DrawOpenCilinder(GLdouble radius, GLdouble height, GLfloat r, GLfloat g, GL
 
     glPushMatrix();
         GLUquadric* quadratic = gluNewQuadric();
-        // gluQuadricOrientation(quadratic, GLU_INSIDE);
+        gluQuadricOrientation(quadratic, GLU_INSIDE);
         gluQuadricNormals(quadratic, GLU_SMOOTH);
 
         // Lateral

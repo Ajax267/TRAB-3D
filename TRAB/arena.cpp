@@ -8,10 +8,10 @@ void CircularArena::DrawArena()
             -this->GetPosition().GetY(),
             0
         );
-        DrawClosedCilinder(
+        DrawOpenCilinder(
             this->GetRadius(),
             this->GetHeight(),
-            this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
+            INTERIOR_R,INTERIOR_G,INTERIOR_B,
             CIRCULAR_ARENA_RES
         );
         glTranslatef(

@@ -34,7 +34,7 @@
 #define JUMP_DELAY 3.0
 
 // Nos PCs do LabGradII 'MOUSE_SENSITIVY 2.0' estava muito alto
-#define MOUSE_SENSITIVY 0.6
+#define MOUSE_SENSITIVY 1.0
 
 // debug
 int debug = 0;
@@ -130,7 +130,7 @@ bool toggle_texture = false;
 bool night_mode = false;
 
 // Enable Multi Viewport
-bool multiviewport = true;
+bool multiviewport = false;
 
 
 /**
@@ -157,7 +157,7 @@ void changeCameraType(int camera_type_num)
 {
 
     if (camera_type_num == EYE_CAMERA) changeCamera(start_angle,glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-    else if (camera_type_num == GUN_CAMERA) changeCamera(90,glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT),1,350);
+    else if (camera_type_num == GUN_CAMERA) changeCamera(90,glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT),1,g_arena.GetRadius()*2);
     else if (camera_type_num == THIRD_PERSON_CAMERA) changeCamera(90,glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT),CAMERA_THIRD_PERSON_DISTANCE,300);
     else if (camera_type_num == SPECTATOR_CAMERA) changeCamera(start_angle,glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 }
