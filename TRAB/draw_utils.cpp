@@ -186,12 +186,13 @@ void DrawObj(double size)
 void DrawCilinder(GLdouble radius, GLdouble height, GLfloat r, GLfloat g, GLfloat b, GLint slices_stacks)
 {
     GLfloat materialEmission[] = { 0.00, 0.00, 0.00, 1.0};
-    GLfloat materialColor[] = { r, g, b, 1.0};
+    GLfloat ambientColor[] = { r, g, b, 0.1};
+    GLfloat diffuseColor[] = { r, g, b, 1.0};
     GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0};
     GLfloat mat_shininess[] = { 128 };
     glMaterialfv(GL_FRONT, GL_EMISSION, materialEmission);
-    glMaterialfv(GL_FRONT, GL_AMBIENT, materialColor);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, materialColor);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientColor);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseColor);
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
     glColor3f(r,g,b);
@@ -226,9 +227,11 @@ void DrawRect3D(
     double trans_x, double trans_y, double trans_z
 )
 {
-    GLfloat mat_ambient[] = { r,g,b, 1.0 };
+    GLfloat diffuseColor[] = { r,g,b, 1.0 };
+    GLfloat ambientColor[] = { r,g,b, 0.1 };
     GLfloat no_mat[] = { 0.0, 0.0, 0.0, 1.0 };
-    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE,mat_ambient);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientColor);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseColor);
     glMaterialfv(GL_FRONT, GL_SPECULAR, no_mat);
     glMaterialfv(GL_FRONT, GL_SHININESS, no_mat);
     glColor3f(r,g,b);
@@ -247,11 +250,13 @@ void DrawRect3D(
 
 void DrawSphere(GLdouble radius, GLfloat r, GLfloat g, GLfloat b, GLint slices_stacks)
 {
-    GLfloat mat_ambient[] = { r, g, b, 0.5 };
+    GLfloat diffuseColor[] = { r,g,b, 1.0 };
+    GLfloat ambientColor[] = { r,g,b, 0.1 };
     GLfloat no_mat[] = { 0.0, 0.0, 0.0, 1.0 };
-    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE,mat_ambient);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientColor);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseColor);
     glMaterialfv(GL_FRONT, GL_SPECULAR, no_mat);
-    glMaterialfv(GL_FRONT, GL_SHININESS, mat_ambient);
+    glMaterialfv(GL_FRONT, GL_SHININESS, no_mat);
     glColor3f(r,g,b);
 
     //y axis green
