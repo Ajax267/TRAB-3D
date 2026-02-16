@@ -8,7 +8,7 @@
 #include "utils.h"
 #include "draw_utils.h"
 
-#define CIRCULAR_ARENA_HEIGHT 20
+#define CIRCULAR_ARENA_HEIGHT 40
 #define CIRCULAR_ARENA_RES 32
 
 class CircularArena : public CircleDefinition

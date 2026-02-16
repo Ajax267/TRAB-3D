@@ -46,8 +46,12 @@ void DrawEllipseWithBorder(
     bool points = false,
     double circle_res = CIRCULE_RES
 );
-
-void DrawCilinder(
+void DrawOpenCilinder(
+    GLdouble radius, GLdouble height,
+    GLfloat r, GLfloat g, GLfloat b,
+    GLint slices_stacks
+);
+void DrawClosedCilinder(
     GLdouble radius,
     GLdouble height,
     GLfloat r,
