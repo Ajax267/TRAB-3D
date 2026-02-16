@@ -13,6 +13,9 @@
 #include <math.h>
 
 
+#define PLAYER1_ID 1
+#define PLAYER2_ID 2
+
 #define PLAYER_SPEED 64.0 // Para mover para cima e para baixo se mantenha consistente
 #define PLAYER_ROTATIONAL_SPEED 100.0 // Para mover para cima e para baixo se mantenha consistente
 #define GUN_ROTATIONAL_SPEED 100.0 // Para mover para cima e para baixo se mantenha consistente
@@ -42,6 +45,8 @@
 #define JUMP_DECAY_PLAYER 2
 #define MAX_JUMP_HEIGHT PLAYER_HEIGHT*2
 
+
+#define LANTERN_Z_SCALE 1.5
 
 class Bullet; // forward declaration
 
@@ -87,6 +92,7 @@ class ArenaPlayer : public CircularEntityDefinition
         void DrawLegs();
         void DrawPlayer();
         void Animate();
+        void DrawLanternLight();
 
         // Player interaction -> Moving,Rotating and Shooting
         void Rotate(GLdouble timeDiference);

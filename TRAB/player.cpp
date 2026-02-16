@@ -1,5 +1,7 @@
 #include "player.h"
 
+extern bool night_mode;
+
 //----------Drawing------------//
 
 void ArenaPlayer::DrawLegs()
@@ -50,6 +52,51 @@ void ArenaPlayer::DrawLegs()
     }
 }
 
+void ArenaPlayer::DrawLanternLight()
+{
+    //Checar se está certo ...
+    glPushMatrix();
+        glTranslatef(
+            (this->GetRadius()*ARM_WIDTH_MULTIPLER - this->GetRadius()*BULLET_RADIUS_SCALER)/2 ,
+            this->GetRadius()*ARM_HEIGHT_MULTIPLER + this->GetRadius()*BULLET_RADIUS_SCALER,
+            -this->GetRadius()*ARM_WIDTH_MULTIPLER*LANTERN_Z_SCALE
+        );
+        int player_light = 0;
+        if (this->_id == PLAYER1_ID)
+        {
+            player_light = GL_LIGHT1;
+        }
+        if ( this->_id == PLAYER2_ID)
+        {
+            player_light = GL_LIGHT2;    
+        }
+
+        GLfloat light_center[] = { 0.0, 0.0, 0.0, 1.0 };
+        glLightfv( player_light, GL_POSITION, light_center);
+        GLfloat light_dir[] = { 0.0, 1.0, 0.0, 1.0 };
+        glLightfv( player_light, GL_SPOT_DIRECTION, light_dir);
+        // glLightf(player_light, GL_QUADRATIC_ATTENUATION, 1.0);
+        glLightf(player_light, GL_SPOT_CUTOFF, 20.0);
+        // Center
+        if(!night_mode)
+        {
+            GLfloat light_center_light[] = { 0.00, 0.00, 0.00, 1.0 };
+            glLightfv( player_light, GL_DIFFUSE, light_center_light);
+            glLightfv( player_light, GL_AMBIENT, light_center_light);
+             glLightfv( player_light, GL_SPECULAR, light_center_light);
+        }
+        else
+        {
+            GLfloat light_center_diffuse[] = { 0.6, 0.6, 0.6, 1.0 };
+            glLightfv( player_light, GL_DIFFUSE, light_center_diffuse);
+            GLfloat light_center_ambient[] = { 0.15, 0.15, 0.15, 1.0};
+            glLightfv( player_light, GL_AMBIENT, light_center_ambient);
+            GLfloat light_center_specular[] = { 1.0, 1.0, 1.0, 1.0};
+            glLightfv( player_light, GL_SPECULAR, light_center_specular);   
+        }
+        
+    glPopMatrix();
+}
 
 void ArenaPlayer::DrawArm()
 {
@@ -83,6 +130,7 @@ void ArenaPlayer::DrawArm()
             this->GetRadius()*ARM_WIDTH_MULTIPLER,
             this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
         );
+        this->DrawLanternLight();
     glPopMatrix();
 }
 
