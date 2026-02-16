@@ -124,20 +124,42 @@ bool night_mode = false;
 
 // Meshes
 meshes g_soldado;
-bool g_drawSoldado = false;
+bool g_drawSoldado = true;
 int g_movIdle = -1;
 int g_movWalking = -1;
 float g_modelScale = 0.5f;
 float g_modelRotX = 90.0f;
 float g_modelRotZ = 180.0f;
 
+static const float SOLDIER_MODEL_HEIGHT = 43.15f;
+
 meshes g_arma;
 int movArma = -1;
-// Disable Features
-int toggle_light = 0;
-int toggle_texture = 0;
 
 bool g_debugCompareModel = true;
+/**
+ * @brief Pega a altura do modelo 3d ou do cilindro
+ */
+static inline float PlayerVisualHeight()
+{
+    // Se estiver usando o soldado usa altura do modelo * escala
+    
+    return g_drawSoldado ? (SOLDIER_MODEL_HEIGHT * g_modelScale) : (float)PLAYER_HEIGHT;
+}
+/**
+ * @brief Pega uma porcentagem da altura para dar offset pra camera do olho
+ */
+static inline float PlayerEyeOffset()
+{
+    return 0.9f * PlayerVisualHeight();
+}
+/**
+ * @brief Pega uma porcentagem da altura para dar offset pra camera da arma
+ */
+static inline float PlayerGunOffset()
+{
+    return 0.70f * PlayerVisualHeight();
+}
 
 /**
  * @brief Starts Player1 Eye Camera Params.
@@ -146,7 +168,7 @@ void init_player_eye_camera(void)
 {
     camera_coords[0] = g_players[0].GetPosition().GetX();
     camera_coords[1] = -g_players[0].GetPosition().GetY();
-    camera_coords[2] = g_players[0].GetPosition().GetZ() + PLAYER_HEIGHT;
+    camera_coords[2] = g_players[0].GetPosition().GetZ() + PlayerEyeOffset();
 }
 
 /**
@@ -156,7 +178,7 @@ void init_player_gun_camera(void)
 {
     camera_coords[0] = g_players[0].GetPosition().GetX() - g_players[0].GetRadius() * -g_players[0].GetDirection().GetY();
     camera_coords[1] = -g_players[0].GetPosition().GetY() + g_players[0].GetRadius() * g_players[0].GetDirection().GetX(); //- g_players[0].GetRadius()* g_players[0].GetDirection().GetY();
-    camera_coords[2] = g_players[0].GetPosition().GetZ() + PLAYER_HEIGHT;
+    camera_coords[2] = g_players[0].GetPosition().GetZ() + PlayerGunOffset();
 }
 
 /**
@@ -166,7 +188,7 @@ void init_player_third_person_camera(void)
 {
     camera_coords[0] = g_players[0].GetPosition().GetX();
     camera_coords[1] = -g_players[0].GetPosition().GetY(); //- g_players[0].GetRadius()* g_players[0].GetDirection().GetY();
-    camera_coords[2] = g_players[0].GetPosition().GetZ() + PLAYER_HEIGHT;
+    camera_coords[2] = g_players[0].GetPosition().GetZ() + PlayerEyeOffset();
 }
 
 /**
@@ -195,7 +217,7 @@ void globalmouseMotion(int x, int y)
 {
     gPastMouseX = gCurrentMouseX;
     gPastMouseY = gCurrentMouseY;
-    gCurrentMouseX = (x / ((float)VHeight));
+    gCurrentMouseX = (x / ((float)VWidth));
     gCurrentMouseY = ((Height - y) / ((float)Height));
 
     if (RightMouseButton == RIGHT_CLICK && RightMouseState == MOUSE_PRESSED && camera_spectator_mode)
@@ -673,10 +695,10 @@ void renderScene(void)
             gluLookAt(
                 camera_coords[0],
                 camera_coords[1],
-                camera_coords[2] + PLAYER_HEIGHT,
+                camera_coords[2] + PlayerVisualHeight(),
                 camera_coords[0] - g_players[0].GetDirection().GetX(),
                 camera_coords[1] + g_players[0].GetDirection().GetY(),
-                camera_coords[2] + g_players[0].GetDirection().GetZ() + PLAYER_HEIGHT,
+                camera_coords[2] + g_players[0].GetDirection().GetZ() + PlayerVisualHeight(),
                 camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
         }
         else if (camera_gun_perspective)
@@ -686,20 +708,23 @@ void renderScene(void)
             gluLookAt(
                 camera_coords[0],
                 camera_coords[1],
-                camera_coords[2] + PLAYER_HEIGHT,
+                camera_coords[2] + PlayerVisualHeight(),
                 camera_coords[0] - g_players[0].GetDirection().GetX(),
                 camera_coords[1] + g_players[0].GetDirection().GetY(),
-                camera_coords[2] + PLAYER_HEIGHT,
+                camera_coords[2] + PlayerVisualHeight(),
                 camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
         }
         else if (camera_third_person)
         {
             init_player_third_person_camera();
+
+            float dist = g_drawSoldado ? (1.6f * PlayerVisualHeight()) : (float)CAMERA_THIRD_PERSON_DISTANCE;
+            float up = 0.35f * PlayerVisualHeight();
             // Testing Player 1 Camera
             gluLookAt(
-                camera_coords[0] + CAMERA_THIRD_PERSON_DISTANCE * g_players[0].GetDirection().GetX(),
-                camera_coords[1] - CAMERA_THIRD_PERSON_DISTANCE * g_players[0].GetDirection().GetY(),
-                camera_coords[2] + PLAYER_HEIGHT + CAMERA_THIRD_PERSON_DISTANCE,
+                camera_coords[0] + dist * g_players[0].GetDirection().GetX(),
+                camera_coords[1] - dist * g_players[0].GetDirection().GetY(),
+                camera_coords[2] + up + CAMERA_THIRD_PERSON_DISTANCE,
                 camera_coords[0],
                 camera_coords[1],
                 camera_coords[2],
@@ -892,6 +917,41 @@ void keyPress(unsigned char key, int x, int y)
         keyStatus[(int)('x')] = 1;
         break;
 
+    //------------------Player 2------------------//
+    case 'o':
+    case 'O':
+        keyStatus[(int)('o')] = 1; // Using keyStatus trick
+        break;
+    case 'l':
+    case 'L':
+        keyStatus[(int)('l')] = 1; // Using keyStatus trick
+        break;
+    case 'k':
+    case 'K':
+        keyStatus[(int)('k')] = 1; // Using keyStatus trick
+        break;
+    case SPECIAL_KEY:
+    case CAPS_SPECIAL_KEY:
+        keyStatus[(int)(SPECIAL_KEY)] = 1; // Using keyStatus trick
+        break;
+    case '2':
+        keyStatus[(int)('2')] = 1; // Using keyStatus trick
+        break;
+    case '5':
+        keyStatus[(int)('5')] = 1; // Using keyStatus trick
+        break;
+    case '4':
+        keyStatus[(int)('4')] = 1; // Using keyStatus trick
+        break;
+    case '6':
+        keyStatus[(int)('6')] = 1; // Using keyStatus trick
+        break;
+    case '8':
+        keyStatus[(int)('8')] = 1; // Using keyStatus trick
+        break;
+    case '.':
+        keyStatus[(int)('.')] = 1; // Using keyStatus trick
+        break;
     //------------------Game------------------//
     case 'b':
     case 'B':
@@ -920,23 +980,23 @@ void keyPress(unsigned char key, int x, int y)
         game_finished = false; // Using keyStatus trick
         break;
 
-        /*case 'c':
-        case 'C':
-            g_debugCompareModel = !g_debugCompareModel;
-            printf("!compare = %d\n", g_debugCompareModel);
-            break;
+    case 'p':
+    case 'P':
+        g_debugCompareModel = !g_debugCompareModel;
+        printf("!compare = %d\n", g_debugCompareModel);
+        break;
 
-        case 'z': // aumenta escala
-        case 'Z':
-            g_modelScale *= 1.05f;
-            printf("g_modelScale = %.4f\n", g_modelScale);
-            break;
+    case 'z': // aumenta escala
+    case 'Z':
+        g_modelScale *= 1.05f;
+        printf("g_modelScale = %.4f\n", g_modelScale);
+        break;
 
-        case 'x': // diminui escala
-        case 'X':
-            g_modelScale /= 1.05f;
-            printf("g_modelScale = %.4f\n", g_modelScale);
-            break;*/
+    case 'q': // diminui escala
+    case 'Q':
+        g_modelScale /= 1.05f;
+        printf("g_modelScale = %.4f\n", g_modelScale);
+        break;
 
     case ESC_KEY:
         exit(0);
@@ -1037,7 +1097,7 @@ void gl_init(void)
     gluPerspective(
         70,
         1, //(GLfloat)windowSize/(GLfloat)windowSize,
-        10,
+        5,
         800);
 
     // // The color the windows will redraw. Its done to erase the previous frame.

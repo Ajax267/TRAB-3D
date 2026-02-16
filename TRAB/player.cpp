@@ -16,8 +16,14 @@ extern bool g_debugCompareModel;
 static const int IDX_HAND_POS = 9263;
 static const int IDX_HAND_AIM = 8480;
 static const int IDX_HAND_UP = -1;
+static const int IDX_HAND_SIDE = 8133;
 
 extern bool night_mode;
+
+//valores pra mover os tiros ate o cano
+static float MUZZLE_X = 0.0f;
+static float MUZZLE_Y = 30.0f;
+static float MUZZLE_Z = 0.0f;
 
 //----------Drawing------------//
 
@@ -62,86 +68,103 @@ void ArenaPlayer::DrawLegs()
         this->is_leg_rotated = false;
     }
 }
-
 void ArenaPlayer::DrawLanternLight()
 {
-    //Checar se está certo ...
-    glPushMatrix();
-        glTranslatef(
-            (this->GetRadius()*ARM_WIDTH_MULTIPLER - this->GetRadius()*BULLET_RADIUS_SCALER)/2 ,
-            this->GetRadius()*ARM_HEIGHT_MULTIPLER + this->GetRadius()*BULLET_RADIUS_SCALER,
-            -this->GetRadius()*ARM_WIDTH_MULTIPLER*LANTERN_Z_SCALE
-        );
-        int player_light = 0;
-        if (this->_id == PLAYER1_ID)
-        {
-            player_light = GL_LIGHT1;
-        }
-        if ( this->_id == PLAYER2_ID)
-        {
-            player_light = GL_LIGHT2;    
-        }
+    int player_light = 0;
+    if (this->_id == PLAYER1_ID)
+    {
+        player_light = GL_LIGHT1;
+    }
+    if (this->_id == PLAYER2_ID)
+    {
+        player_light = GL_LIGHT2;    
+    }
 
-        GLfloat light_center[] = { 0.0, 0.0, 0.0, 1.0 };
-        glLightfv( player_light, GL_POSITION, light_center);
-        GLfloat light_dir[] = { 0.0, 1.0, 0.0, 1.0 };
-        glLightfv( player_light, GL_SPOT_DIRECTION, light_dir);
-        // glLightf(player_light, GL_QUADRATIC_ATTENUATION, 1.0);
-        glLightf(player_light, GL_SPOT_CUTOFF, 20.0);
-        // Center
-        if(!night_mode)
-        {
-            GLfloat light_center_light[] = { 0.00, 0.00, 0.00, 1.0 };
-            glLightfv( player_light, GL_DIFFUSE, light_center_light);
-            glLightfv( player_light, GL_AMBIENT, light_center_light);
-             glLightfv( player_light, GL_SPECULAR, light_center_light);
-        }
-        else
-        {
-            GLfloat light_center_diffuse[] = { 0.6, 0.6, 0.6, 1.0 };
-            glLightfv( player_light, GL_DIFFUSE, light_center_diffuse);
-            GLfloat light_center_ambient[] = { 0.15, 0.15, 0.15, 1.0};
-            glLightfv( player_light, GL_AMBIENT, light_center_ambient);
-            GLfloat light_center_specular[] = { 1.0, 1.0, 1.0, 1.0};
-            glLightfv( player_light, GL_SPECULAR, light_center_specular);   
-        }
+    if (g_drawSoldado)
+    {
+        GLfloat modelview_matrix[16];
+        glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
         
-    glPopMatrix();
+        GLfloat light_position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        glLightfv(player_light, GL_POSITION, light_position);
+        
+        GLfloat light_dir[] = { 
+            modelview_matrix[4], 
+            modelview_matrix[5],  
+            modelview_matrix[6], 
+            0.0f 
+        };
+        glLightfv(player_light, GL_SPOT_DIRECTION, light_dir);
+    }
+    else
+    {
+        glPushMatrix();
+            glTranslatef(
+                (this->GetRadius()*ARM_WIDTH_MULTIPLER - this->GetRadius()*BULLET_RADIUS_SCALER)/2,
+                this->GetRadius()*ARM_HEIGHT_MULTIPLER + this->GetRadius()*BULLET_RADIUS_SCALER,
+                -this->GetRadius()*ARM_WIDTH_MULTIPLER*LANTERN_Z_SCALE
+            );
+            
+            GLfloat light_center[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+            glLightfv(player_light, GL_POSITION, light_center);
+            
+            GLfloat light_dir[] = { 0.0f, 1.0f, 0.0f, 1.0f };
+            glLightfv(player_light, GL_SPOT_DIRECTION, light_dir);
+        glPopMatrix();
+    }
+    
+    glLightf(player_light, GL_SPOT_CUTOFF, 20.0f);
+    
+    if (!night_mode)
+    {
+        GLfloat light_off[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        glLightfv(player_light, GL_DIFFUSE, light_off);
+        glLightfv(player_light, GL_AMBIENT, light_off);
+        glLightfv(player_light, GL_SPECULAR, light_off);
+    }
+    else
+    {
+        GLfloat light_diffuse[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+        glLightfv(player_light, GL_DIFFUSE, light_diffuse);
+        
+        GLfloat light_ambient[] = { 0.15f, 0.15f, 0.15f, 1.0f };
+        glLightfv(player_light, GL_AMBIENT, light_ambient);
+        
+        GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glLightfv(player_light, GL_SPECULAR, light_specular);
+    }
 }
 
 void ArenaPlayer::DrawArm()
 {
     glPushMatrix();
-        glTranslatef(
-            this->GetRadius(), 
-            0,       
-            PLAYER_HEIGHT // Braço vai ficar no meio do cilindro
-        );
-        // glTranslatef(
-        //     this->GetRadius() * BODY_X_RADIUS_MULTIPLER * ARM_DISTANCE_MULTIPLER,
-        //     0,
-        //     0
-        // );
-        glRotatef(
-            this->gun_yaw,
-            0,0,1
-        );
-        glRotatef(
-            this->gun_roll,
-            1,0,0
-        );
-        // DrawRectWithBorder(
-        //     this->GetRadius()*ARM_HEIGHT_MULTIPLER,
-        //     this->GetRadius()*ARM_WIDTH_MULTIPLER,
-        //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
-        // );
-        DrawRect3D(
-            this->GetRadius()*ARM_HEIGHT_MULTIPLER,
-            this->GetRadius()*ARM_WIDTH_MULTIPLER,
-            this->GetRadius()*ARM_WIDTH_MULTIPLER,
-            this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
-        );
-        this->DrawLanternLight();
+    glTranslatef(
+        this->GetRadius(),
+        0,
+        PLAYER_HEIGHT // Braço vai ficar no meio do cilindro
+    );
+    // glTranslatef(
+    //     this->GetRadius() * BODY_X_RADIUS_MULTIPLER * ARM_DISTANCE_MULTIPLER,
+    //     0,
+    //     0
+    // );
+    glRotatef(
+        this->gun_yaw,
+        0, 0, 1);
+    glRotatef(
+        this->gun_roll,
+        1, 0, 0);
+    // DrawRectWithBorder(
+    //     this->GetRadius()*ARM_HEIGHT_MULTIPLER,
+    //     this->GetRadius()*ARM_WIDTH_MULTIPLER,
+    //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
+    // );
+    DrawRect3D(
+        this->GetRadius() * ARM_HEIGHT_MULTIPLER,
+        this->GetRadius() * ARM_WIDTH_MULTIPLER,
+        this->GetRadius() * ARM_WIDTH_MULTIPLER,
+        this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB());
+    this->DrawLanternLight();
     glPopMatrix();
 }
 
@@ -203,7 +226,7 @@ void ArenaPlayer::DrawPlayer()
 
         mesh &m = g_soldado.vecMeshes[mov][frame];
         glPushMatrix();
-        float upx = 0, upy = 0, upz = 1; // fallback
+        float upx = 0, upy = 0, upz = 1;
         if (IDX_HAND_UP >= 0)
         {
             upx = m.vertsPos[IDX_HAND_UP].x - m.vertsPos[IDX_HAND_POS].x;
@@ -216,13 +239,30 @@ void ArenaPlayer::DrawPlayer()
             m.vertsPos[IDX_HAND_POS].x, m.vertsPos[IDX_HAND_POS].y, m.vertsPos[IDX_HAND_POS].z,
             upx, upy, upz);
 
-        // 4) ajustes finos (sempre precisa)
-        // exemplo: alinhar cabo, deslocar pra palma, escalar
-        // glRotatef(...);
-        // glTranslatef(...);
-        // glScalef(...);
+        // sweet spot da rotação
+        float correcaoPulso = 15.0f;
+
+        if (mov == g_movWalking)
+        {
+            correcaoPulso = -30.0f;
+        }
+
+        glRotatef(correcaoPulso, 0, 1, 0);
+        // ajustando os eixos da arma com o resto
+        glRotatef(this->gun_yaw, -1, 0, 0);
+        glRotatef(this->gun_roll, 0, 0, 1);
 
         g_arma.draw(movArma, 0);
+
+        glTranslatef(MUZZLE_X, MUZZLE_Y, MUZZLE_Z);
+
+        glPushMatrix();
+
+        glTranslatef(0.0f, 0.0f, -1.0f);
+
+        this->DrawLanternLight();
+
+        glPopMatrix();
         glPopMatrix();
         glPopMatrix();
     }
@@ -241,7 +281,6 @@ void ArenaPlayer::DrawPlayer()
         this->DrawBody();
         this->DrawArm();
     }
-
     glPopMatrix();
 }
 
@@ -355,22 +394,67 @@ void ArenaPlayer::Shoot()
     glRotatef(
         this->GetOrientation().GetYaw(),
         0, 0, 1);
-    glTranslatef(
-        this->GetRadius(),
-        0,
-        PLAYER_HEIGHT);
-    glRotatef(
-        this->gun_yaw,
-        0, 0, 1);
-    glRotatef(
-        this->gun_roll,
-        1, 0, 0);
-    // Center bullet on the gun
-    glTranslatef(
-        (this->GetRadius() * ARM_WIDTH_MULTIPLER - this->GetRadius() * BULLET_RADIUS_SCALER) / 2,
-        this->GetRadius() * ARM_HEIGHT_MULTIPLER + this->GetRadius() * BULLET_RADIUS_SCALER,
-        -this->GetRadius() * ARM_WIDTH_MULTIPLER / 2);
+    if (g_drawSoldado)
+    {
+        glRotatef(g_modelRotZ, 0, 0, 1);
+        glRotatef(g_modelRotX, 1, 0, 0);
+        glScalef(g_modelScale, g_modelScale, g_modelScale);
 
+        int mov = this->GetSoldadoMov();
+        int frame = this->GetSoldadoFrame();
+        if (mov < 0)
+        {
+            mov = g_movIdle;
+            frame = 0;
+        }
+
+        mesh &m = g_soldado.vecMeshes[mov][frame];
+
+        float upx = 0, upy = 0, upz = 1;
+        if (IDX_HAND_UP >= 0)
+        {
+            upx = m.vertsPos[IDX_HAND_UP].x - m.vertsPos[IDX_HAND_POS].x;
+            upy = m.vertsPos[IDX_HAND_UP].y - m.vertsPos[IDX_HAND_POS].y;
+            upz = m.vertsPos[IDX_HAND_UP].z - m.vertsPos[IDX_HAND_POS].z;
+        }
+
+        ChangeCoordSys(
+            m.vertsPos[IDX_HAND_AIM].x, m.vertsPos[IDX_HAND_AIM].y, m.vertsPos[IDX_HAND_AIM].z,
+            m.vertsPos[IDX_HAND_POS].x, m.vertsPos[IDX_HAND_POS].y, m.vertsPos[IDX_HAND_POS].z,
+            upx, upy, upz);
+
+        // mesma rotação da arma
+        float correcaoPulso = 15.0f;
+
+        if (mov == g_movWalking)
+        {           
+            correcaoPulso = -30.0f;
+        }
+        glRotatef(correcaoPulso, 0, 1, 0);
+        glRotatef(this->gun_yaw, -1, 0, 0);
+        glRotatef(this->gun_roll, 0, 0, 1);
+
+        // anda até o cano
+        glTranslatef(MUZZLE_X, MUZZLE_Y, MUZZLE_Z);
+    }
+    else
+    {
+        glTranslatef(
+            this->GetRadius(),
+            0,
+            PLAYER_HEIGHT);
+        glRotatef(
+            this->gun_yaw,
+            0, 0, 1);
+        glRotatef(
+            this->gun_roll,
+            1, 0, 0);
+        // Center bullet on the gun
+        glTranslatef(
+            (this->GetRadius() * ARM_WIDTH_MULTIPLER - this->GetRadius() * BULLET_RADIUS_SCALER) / 2,
+            this->GetRadius() * ARM_HEIGHT_MULTIPLER + this->GetRadius() * BULLET_RADIUS_SCALER,
+            -this->GetRadius() * ARM_WIDTH_MULTIPLER / 2);
+    }
     // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glGet.xml
     // GL_MODELVIEW_MATRIX
     // params returns sixteen values:
