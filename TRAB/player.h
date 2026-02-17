@@ -127,7 +127,7 @@ class ArenaPlayer : public CircularEntityDefinition
 
         // Pos and Hitbox
         double Hitbox(){ return this->GetRadius(); };
-        int GetId() { return this->_id; };
+        int& GetId() { return this->_id; };
         std::vector<Bullet>& GetBulletVec() { return this->bullet_vec; };
         short GetLastLeg() {return this->_last_leg_id;};
         void SetCurrentLeg(short leg_id) {this->_last_leg_id = leg_id;};
@@ -141,7 +141,6 @@ class ArenaPlayer : public CircularEntityDefinition
         void SetGunYaw(double g_yaw) {this->gun_yaw=g_yaw;};
         void SetGunPitch(double g_pitch) {this->gun_roll=g_pitch;};
 
-        int& GetID() {return this->_id;};
         void SetLastAnimationAttemptPosition(PositionDefinition pos)
             {this->last_animation_attempt_position = pos;};
 

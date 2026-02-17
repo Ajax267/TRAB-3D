@@ -68,6 +68,9 @@ void ArenaPlayer::DrawLegs()
         this->is_leg_rotated = false;
     }
 }
+
+
+
 void ArenaPlayer::DrawLanternLight()
 {
     int player_light = 0;
@@ -83,8 +86,7 @@ void ArenaPlayer::DrawLanternLight()
     if (g_drawSoldado)
     {
         GLfloat modelview_matrix[16];
-        glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
-        
+        glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);        
         GLfloat light_position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
         glLightfv(player_light, GL_POSITION, light_position);
         
@@ -134,6 +136,7 @@ void ArenaPlayer::DrawLanternLight()
         glLightfv(player_light, GL_SPECULAR, light_specular);
     }
 }
+
 
 void ArenaPlayer::DrawArm()
 {
