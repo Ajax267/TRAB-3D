@@ -135,6 +135,9 @@ short camera_type_num = GUN_CAMERA;
 bool toggle_light = true;
 bool toggle_texture = true;
 bool night_mode = false;
+bool toggle_axes = false;
+bool g_debugCompareModel = false;
+
 
 // Meshes
 meshes g_soldado;
@@ -157,10 +160,6 @@ int movArma = -1;
 GLuint g_texturaParedeArena = 0;
 GLuint g_texturaChao = 0;
 GLuint g_texturaObstaculo = 0;
-
-
-bool g_debugCompareModel = true;
-
 
 
 /**
@@ -189,7 +188,7 @@ static inline float PlayerEyeOffset()
  */
 static inline float PlayerGunOffset()
 {
-    return 0.70f * PlayerVisualHeight();
+    return 1.2f * PlayerVisualHeight();
 }
 // Enable Multi Viewport
 bool multiviewport = true;
@@ -233,9 +232,19 @@ void changeCameraType(int camera_type_num)
  */
 void init_player_eye_camera_coords(int player_id)
 {
-    camera_coords[0] = g_players[player_id - 1].GetPosition().GetX();
-    camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY();
-    camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + player_height;
+    if (!g_drawSoldado)
+    {
+        camera_coords[0] = g_players[player_id - 1].GetPosition().GetX();
+        camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY();
+        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + player_height;
+    }
+    else
+    {
+        float offset =  g_players[player_id - 1].GetRadius() * 0.75;
+        camera_coords[0] = g_players[player_id - 1].GetPosition().GetX() + offset * g_players[player_id - 1].GetDirection().GetY();
+        camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY() + offset * g_players[player_id - 1].GetDirection().GetX();
+        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerEyeOffset();  
+    }
 }
 
 
@@ -245,9 +254,20 @@ void init_player_eye_camera_coords(int player_id)
  */
 void init_player_gun_camera_coords(int player_id)
 {
-    camera_coords[0] = g_players[player_id - 1].GetPosition().GetX() - g_players[player_id - 1].GetRadius() * -g_players[player_id - 1].GetDirection().GetY();
-    camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY() + g_players[player_id - 1].GetRadius() * g_players[player_id - 1].GetDirection().GetX(); //- g_players[0].GetRadius()* g_players[0].GetDirection().GetY();
-    camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ();
+    if (!g_drawSoldado)
+    {
+        float offset = g_players[player_id - 1].GetRadius() * ARM_WIDTH_MULTIPLER/2 + g_players[player_id - 1].GetRadius();
+        camera_coords[0] = g_players[player_id - 1].GetPosition().GetX() + offset * g_players[player_id - 1].GetDirection().GetY();
+        camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY() + offset * g_players[player_id - 1].GetDirection().GetX(); //- g_players[0].GetRadius()* g_players[0].GetDirection().GetY();
+        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerGunOffset();
+    }
+    else
+    {
+        float offset = g_players[player_id - 1].GetRadius();
+        camera_coords[0] = g_players[player_id - 1].GetPosition().GetX() + offset * g_players[player_id - 1].GetDirection().GetY();
+        camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY() + offset * g_players[player_id - 1].GetDirection().GetX(); //- g_players[0].GetRadius()* g_players[0].GetDirection().GetY();
+        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerGunOffset() * (0.8/1.2);
+    }
 }
 
 
@@ -895,10 +915,10 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
                     gluLookAt(
                     camera_coords[0],
                     camera_coords[1],
-                    camera_coords[2] + PlayerGunOffset(),
+                    camera_coords[2],
                     camera_coords[0] - g_players[player_id - 1].GetDirection().GetX(),
                     camera_coords[1] + g_players[player_id - 1].GetDirection().GetY(),
-                    camera_coords[2] + PlayerGunOffset(),
+                    camera_coords[2],
                     camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
                     );   
                 }
@@ -994,7 +1014,7 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
 
         DrawArenaLights();
 
-        if(!g_drawSoldado)DrawAxes(100);
+        if(toggle_axes)DrawAxes(100);
 
         if(player_id == PLAYER1_ID) glDisable(GL_LIGHT2);
         else if (player_id == PLAYER2_ID) glDisable(GL_LIGHT1); 
@@ -1247,6 +1267,11 @@ void keyPress(unsigned char key, int x, int y)
         if (g_drawSoldado) player_height = SOLDIER_MODEL_HEIGHT * g_modelScale;
         else player_height = debug_player_height;
         break;
+    
+    case 't':
+    case 'T':
+        toggle_axes = !toggle_axes;
+        break;
 
     case 'j':
     case 'J':
@@ -1266,7 +1291,7 @@ void keyPress(unsigned char key, int x, int y)
         {
             camThirdPersonZoom += CAMERA_THIRD_PERSON_ZOOM_DELTA;
 
-            if (camThirdPersonZoom >= 60.0) camThirdPersonZoom = 60.0;
+            if (camThirdPersonZoom >= 90.0) camThirdPersonZoom = 90.0;
         }
         break; 
 

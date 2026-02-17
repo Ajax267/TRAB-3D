@@ -94,7 +94,6 @@ void ArenaPlayer::DrawLanternLight()
             modelview_matrix[4], 
             modelview_matrix[5],  
             modelview_matrix[6], 
-            0.0f 
         };
         glLightfv(player_light, GL_SPOT_DIRECTION, light_dir);
     }
@@ -102,20 +101,27 @@ void ArenaPlayer::DrawLanternLight()
     {
         glPushMatrix();
             glTranslatef(
-                (this->GetRadius()*ARM_WIDTH_MULTIPLER - this->GetRadius()*BULLET_RADIUS_SCALER)/2,
+                (this->GetRadius()*ARM_WIDTH_MULTIPLER - this->GetRadius()*BULLET_RADIUS_SCALER),
                 this->GetRadius()*ARM_HEIGHT_MULTIPLER + this->GetRadius()*BULLET_RADIUS_SCALER,
                 -this->GetRadius()*ARM_WIDTH_MULTIPLER*LANTERN_Z_SCALE
             );
+            DrawRect3D(
+                this->GetRadius() * ARM_HEIGHT_MULTIPLER * 0.2,
+                this->GetRadius() * ARM_WIDTH_MULTIPLER * 0.2,
+                this->GetRadius() * ARM_WIDTH_MULTIPLER * 0.2,
+                this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB()
+            ); 
             
             GLfloat light_center[] = { 0.0f, 0.0f, 0.0f, 1.0f };
             glLightfv(player_light, GL_POSITION, light_center);
             
-            GLfloat light_dir[] = { 0.0f, 1.0f, 0.0f, 1.0f };
+            GLfloat light_dir[] = { 0.0f, -1.0f, 0.0f};
             glLightfv(player_light, GL_SPOT_DIRECTION, light_dir);
         glPopMatrix();
     }
     
     glLightf(player_light, GL_SPOT_CUTOFF, 20.0f);
+    glLightf(player_light, GL_SPOT_EXPONENT, 15.0f);
     
     if (!night_mode)
     {
@@ -138,6 +144,7 @@ void ArenaPlayer::DrawLanternLight()
 }
 
 
+
 void ArenaPlayer::DrawArm()
 {
     glPushMatrix();
@@ -153,10 +160,12 @@ void ArenaPlayer::DrawArm()
     // );
     glRotatef(
         this->gun_yaw,
-        0, 0, 1);
+        0, 0, 1
+    );
     glRotatef(
         this->gun_roll,
-        1, 0, 0);
+        1, 0, 0
+    );
     // DrawRectWithBorder(
     //     this->GetRadius()*ARM_HEIGHT_MULTIPLER,
     //     this->GetRadius()*ARM_WIDTH_MULTIPLER,
@@ -166,10 +175,13 @@ void ArenaPlayer::DrawArm()
         this->GetRadius() * ARM_HEIGHT_MULTIPLER,
         this->GetRadius() * ARM_WIDTH_MULTIPLER,
         this->GetRadius() * ARM_WIDTH_MULTIPLER,
-        this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB());
+        this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB()
+    );
     this->DrawLanternLight();
     glPopMatrix();
 }
+
+
 
 void ArenaPlayer::DrawBody()
 {
@@ -191,6 +203,8 @@ void ArenaPlayer::DrawBody()
         // );
     glPopMatrix();
 }
+
+
 
 void ArenaPlayer::DrawPlayer()
 {
@@ -288,6 +302,8 @@ void ArenaPlayer::DrawPlayer()
     glPopMatrix();
 }
 
+
+
 bool ArenaPlayer::IsMoving()
 {
     return (
@@ -296,6 +312,8 @@ bool ArenaPlayer::IsMoving()
             this->GetPosition().GetZ() - this->last_animation_attempt_position.GetZ() !=
         0);
 }
+
+
 
 void ArenaPlayer::Animate()
 {
@@ -318,6 +336,8 @@ void ArenaPlayer::Animate()
 }
 
 //----------Interaction------------//
+
+
 
 void ArenaPlayer::Move(
     CircularArena &arena,
@@ -343,6 +363,8 @@ void ArenaPlayer::Move(
     }
 }
 
+
+
 void ArenaPlayer::Rotate(GLdouble timeDiference)
 {
     this->GetOrientation().SetYaw(this->GetOrientation().GetYaw() + PLAYER_ROTATIONAL_SPEED * timeDiference);
@@ -360,6 +382,8 @@ void ArenaPlayer::Rotate(GLdouble timeDiference)
     this->GetVelocity().SetVy(-PLAYER_SPEED * this->direction.GetY());
 }
 
+
+
 void ArenaPlayer::RotateGunYaw(GLdouble timeDiference)
 {
     this->gun_yaw += GUN_ROTATIONAL_SPEED * timeDiference;
@@ -370,6 +394,8 @@ void ArenaPlayer::RotateGunYaw(GLdouble timeDiference)
     // printf("gun_yaw %3.f\n",gun_yaw);
 }
 
+
+
 void ArenaPlayer::RotateGunRoll(GLdouble timeDiference)
 {
     this->gun_roll += GUN_ROTATIONAL_SPEED * timeDiference;
@@ -379,6 +405,8 @@ void ArenaPlayer::RotateGunRoll(GLdouble timeDiference)
         this->gun_roll = -45.0;
     // printf("gun_yaw %3.f\n",gun_yaw);
 }
+
+
 
 void ArenaPlayer::Shoot()
 {
@@ -487,6 +515,8 @@ void ArenaPlayer::Shoot()
     glPopMatrix();
 }
 
+
+
 void ArenaPlayer::IncreaseHeight(GLdouble timeDiference, int jump_button_status)
 {
     // printf("passe aqui 0\n");
@@ -507,6 +537,8 @@ void ArenaPlayer::IncreaseHeight(GLdouble timeDiference, int jump_button_status)
         this->jump_decay = true; // Ativa a queda se a altura de pulo máximo é atinginda
     }
 }
+
+
 
 void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
 {
@@ -547,6 +579,8 @@ void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
     }
 }
 
+
+
 void ArenaPlayer::UpdateDecayType(
     CircularArena &arena,
     std::vector<CircularObstacle> &obstacles_vec,
@@ -578,11 +612,15 @@ double ArenaPlayer::SquareDistanceTo(double x, double y)
     return (dx * dx + dy * dy);
 }
 
+
+
 bool ArenaPlayer::InArena(CircularArena &arena)
 {
     return (
         this->SquareDistanceTo(arena.GetPosition().GetX(), arena.GetPosition().GetY()) <= arena.GetRadius() * arena.GetRadius());
 }
+
+
 
 bool ArenaPlayer::ArenaCollision(CircularArena &arena)
 {
@@ -600,6 +638,8 @@ bool ArenaPlayer::ArenaCollision(CircularArena &arena)
     }
     return false;
 }
+
+
 
 // Obstacles should only exist inside the Arena
 bool ArenaPlayer::ObstacleCollision(CircularArena &arena, std::vector<CircularObstacle> &obstacles_vec)
@@ -634,6 +674,8 @@ bool ArenaPlayer::ObstacleCollision(CircularArena &arena, std::vector<CircularOb
     this->on_obstacle = false;
     return false;
 }
+
+
 
 bool ArenaPlayer::PlayerCollision(CircularArena &arena, std::vector<ArenaPlayer> &players_vec)
 {
@@ -672,6 +714,8 @@ bool ArenaPlayer::PlayerCollision(CircularArena &arena, std::vector<ArenaPlayer>
     this->on_player = false;
     return false;
 }
+
+
 
 void ArenaPlayer::UpdateSoldadoAnim(double dtMs, bool andando)
 {
