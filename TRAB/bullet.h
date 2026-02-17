@@ -13,6 +13,7 @@
 #include "arena.h"
 #include "arena_obstacles.h"
 
+extern double player_height;
 
 #define BULLET_RES 10
 

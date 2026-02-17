@@ -144,7 +144,7 @@ void ArenaPlayer::DrawArm()
     glTranslatef(
         this->GetRadius(),
         0,
-        PLAYER_HEIGHT // Braço vai ficar no meio do cilindro
+        player_height // Braço vai ficar no meio do cilindro
     );
     // glTranslatef(
     //     this->GetRadius() * BODY_X_RADIUS_MULTIPLER * ARM_DISTANCE_MULTIPLER,
@@ -176,7 +176,7 @@ void ArenaPlayer::DrawBody()
     glPushMatrix();
         DrawClosedCilinder(
             this->GetRadius(),
-            PLAYER_HEIGHT,
+            player_height,
             this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
             PLAYER_RES
         );
@@ -207,7 +207,7 @@ void ArenaPlayer::DrawPlayer()
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_LIGHTING);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
-            DrawClosedCilinder(this->GetRadius(), PLAYER_HEIGHT, 1, 1, 0, PLAYER_RES);
+            DrawClosedCilinder(this->GetRadius(), player_height, 1, 1, 0, PLAYER_RES);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopAttrib();
         }
@@ -341,13 +341,6 @@ void ArenaPlayer::Move(
     {
         this->GetPosition() = this->GetLastPosition();
     }
-
-    // Apenas atualiza quando move
-    // //Hierarquia dos pulos
-    // this->jump_decay_type = JUMP_DECAY_ARENA;
-    // if ( this->on_obstacle ) this->jump_decay_type = JUMP_DECAY_OBSTACLE;
-    // if ( this->on_player ) this->jump_decay_type = JUMP_DECAY_PLAYER;
-    // printf("jump_decay_type : %d\n",jump_decay_type);
 }
 
 void ArenaPlayer::Rotate(GLdouble timeDiference)
@@ -446,7 +439,8 @@ void ArenaPlayer::Shoot()
         glTranslatef(
             this->GetRadius(),
             0,
-            PLAYER_HEIGHT);
+            player_height
+        );
         glRotatef(
             this->gun_yaw,
             0, 0, 1);
@@ -455,22 +449,14 @@ void ArenaPlayer::Shoot()
             1, 0, 0);
         // Center bullet on the gun
         glTranslatef(
-            (this->GetRadius() * ARM_WIDTH_MULTIPLER - this->GetRadius() * BULLET_RADIUS_SCALER) / 2,
+            (this->GetRadius() * ARM_WIDTH_MULTIPLER - this->GetRadius() * BULLET_RADIUS_SCALER),
             this->GetRadius() * ARM_HEIGHT_MULTIPLER + this->GetRadius() * BULLET_RADIUS_SCALER,
-            -this->GetRadius() * ARM_WIDTH_MULTIPLER / 2);
+            -this->GetRadius() * ARM_WIDTH_MULTIPLER + this->GetRadius() * BULLET_RADIUS_SCALER
+        );
+        // this->GetRadius() * ARM_HEIGHT_MULTIPLER,
+        // this->GetRadius() * ARM_WIDTH_MULTIPLER,
+        // this->GetRadius() * ARM_WIDTH_MULTIPLER,
     }
-    // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glGet.xml
-    // GL_MODELVIEW_MATRIX
-    // params returns sixteen values:
-    // the modelview matrix on the top of the modelview matrix stack.
-    // Initially this matrix is the identity matrix.
-
-    // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glGet.xml
-    // GL_MODELVIEW_MATRIX
-    // params returns sixteen values:
-    // the modelview matrix on the top of the modelview matrix stack.
-    // Initially this matrix is the identity matrix.
-
     // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glGet.xml
     // GL_MODELVIEW_MATRIX
     // params returns sixteen values:
@@ -510,14 +496,14 @@ void ArenaPlayer::IncreaseHeight(GLdouble timeDiference, int jump_button_status)
     if (!this->jump_decay)
     {
         // printf("passe aqui 1\n");
-        float jump_delta = MAX_JUMP_HEIGHT * timeDiference;
+        float jump_delta = MAX_JUMP_HEIGHT_SCALE * player_height * timeDiference;
         this->current_jump_height += jump_delta;
         this->GetPosition().SetZ(this->GetPosition().GetZ() + jump_delta);
     }
-    if (this->current_jump_height >= MAX_JUMP_HEIGHT)
+    if (this->current_jump_height >= MAX_JUMP_HEIGHT_SCALE * player_height)
     {
         // printf("passe aqui 2\n");
-        this->current_jump_height = MAX_JUMP_HEIGHT;
+        this->current_jump_height = MAX_JUMP_HEIGHT_SCALE * player_height;
         this->jump_decay = true; // Ativa a queda se a altura de pulo máximo é atinginda
     }
 }
@@ -529,7 +515,7 @@ void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
     if (this->jump_decay)
     {
         // printf("jump_decay_type %d\n",jump_decay_type);
-        current_z -= MAX_JUMP_HEIGHT * timeDiference;
+        current_z -= MAX_JUMP_HEIGHT_SCALE * player_height * timeDiference;
         if (jump_decay_type == JUMP_DECAY_ARENA)
         {
             if (current_z <= 0)
@@ -541,18 +527,18 @@ void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
         }
         else if (jump_decay_type == JUMP_DECAY_OBSTACLE)
         {
-            if (current_z <= OBSTACLE_HEIGHT)
+            if (current_z <= OBSTACLE_HEIGHT_SCALE * player_height)
             {
-                current_z = OBSTACLE_HEIGHT;
+                current_z = OBSTACLE_HEIGHT_SCALE * player_height;
                 this->jump_decay = false;
                 this->current_jump_height = 0.0;
             }
         }
         else if (jump_decay_type == JUMP_DECAY_PLAYER)
         {
-            if (current_z <= player.GetPosition().GetZ() + PLAYER_HEIGHT)
+            if (current_z <= player.GetPosition().GetZ() + player_height)
             {
-                current_z = player.GetPosition().GetZ() + PLAYER_HEIGHT;
+                current_z = player.GetPosition().GetZ() + player_height;
                 this->jump_decay = false;
                 this->current_jump_height = 0.0;
             }
@@ -630,7 +616,7 @@ bool ArenaPlayer::ObstacleCollision(CircularArena &arena, std::vector<CircularOb
             {
                 if (
                     this->GetPosition().GetZ() >= obstacle.GetPosition().GetZ() &&
-                    this->GetPosition().GetZ() < obstacle.GetHeight())
+                    this->GetPosition().GetZ() < obstacle.GetHeightScale() * player_height)
                 {
                     return true;
                 }
@@ -666,11 +652,11 @@ bool ArenaPlayer::PlayerCollision(CircularArena &arena, std::vector<ArenaPlayer>
             {
                 if (
                     this->GetPosition().GetZ() >= current_player.GetPosition().GetZ() &&
-                    this->GetPosition().GetZ() < current_player.GetPosition().GetZ() + current_player.GetHeight())
+                    this->GetPosition().GetZ() < current_player.GetPosition().GetZ() + player_height)
                 {
                     return true;
                 }
-                else if (this->GetPosition().GetZ() >= current_player.GetPosition().GetZ() + current_player.GetHeight())
+                else if (this->GetPosition().GetZ() >= current_player.GetPosition().GetZ() + player_height)
                 {
                     this->on_player = true;
                     return false;

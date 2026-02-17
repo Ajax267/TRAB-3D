@@ -8,17 +8,19 @@
 #include "utils.h"
 #include "draw_utils.h"
 
-#define CIRCULAR_ARENA_HEIGHT 40
+#define CIRCULAR_ARENA_HEIGHT_SCALE 4.0
 #define CIRCULAR_ARENA_RES 64
 
 #define INTERIOR_R 1.0
 #define INTERIOR_G 1.0
 #define INTERIOR_B 0
 
+extern double player_height;
+
 class CircularArena : public CircleDefinition
 {
     private:
-        float height = CIRCULAR_ARENA_HEIGHT;
+        float height_scale = CIRCULAR_ARENA_HEIGHT_SCALE;
     public:
         // Allow declaration without parameters
         CircularArena()
@@ -29,8 +31,8 @@ class CircularArena : public CircleDefinition
 
         void DrawArena();
 
-        const float& GetHeight() const {return this->height;};
-        void SetHeight(float height) {this->height=height;};
+        const float& GetHeightScale() const {return this->height_scale;};
+        void SetHeightScale(float height_scale) {this->height_scale=height_scale;};
         
     
 };

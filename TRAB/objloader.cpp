@@ -21,7 +21,7 @@ bool meshes::drawNext(){
     this->draw(this->currentMovID, this->currentFrame);
     this->currentFrame++;
     
-    return (this->currentFrame >= this->vecMeshes[this->currentMovID].size());
+    return ( (long unsigned int) this->currentFrame >= this->vecMeshes[this->currentMovID].size());
 }
 
 //Desenha a frame atual
@@ -49,19 +49,19 @@ int meshes::loadMeshAnim(string path, int qtd){
 
 //Desenha uma mesh com a respectiva textura
 void meshes::draw(int movID, int frameId){
-    if (this->texID != -1){
+    if ( (int) this->texID != -1){
         glEnable(GL_TEXTURE_2D);
         glBindTexture (GL_TEXTURE_2D, this->texID);
     }
     this->vecMeshes[movID][frameId].draw();
-    if (this->texID != -1){
+    if ( (int) this->texID !=  -1){
         glDisable(GL_TEXTURE_2D);
     }
 }
 
 //Le a textura
 bool meshes::loadTexture(string path){
-    FILE* file= fopen(path.data(), "r");
+    // FILE* file= fopen(path.data(), "r");
     
     Image* image = loadBMP(path.c_str());
     this->texWidth = image->width;
@@ -93,7 +93,7 @@ bool mesh::loadMesh(string path){
     vertsNorm.clear();
     vertsTex.clear();
     vertsS.clear();
-    int i =0;
+    // int i =0;
     FILE* file= fopen(path.data(), "r");
     if(file== NULL){
         cout<< "falha ao carregar o arquivo"<< endl;
@@ -162,7 +162,7 @@ bool mesh::loadMesh(string path){
 
 //desenha a malha
 void mesh::draw(){
-    int cont=0;
+    // int cont=0;
     GLfloat materialEmission[] = { 0.10, 0.10, 0.10, 1};
     GLfloat materialColorA[] = { 0.1, 0.1, 0.1, 0.1};
     GLfloat materialColorD[] = { .90, .90, .90, 1};
@@ -174,7 +174,7 @@ void mesh::draw(){
 
     for(unsigned int i=0; i<vertsS.size(); i=i+3){
         glBegin(GL_TRIANGLE_STRIP);
-            for(int j=i; j<i+3; j++){
+            for(unsigned int j=i; j<i+3; j++){
                 glTexCoord2f (vertsS[j].vTex.u, vertsS[j].vTex.v);
                 glNormal3f(vertsS[j].vNorm.x,vertsS[j].vNorm.y,vertsS[j].vNorm.z);
                 glVertex3f(vertsS[j].vPos.x,vertsS[j].vPos.y,vertsS[j].vPos.z);

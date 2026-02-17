@@ -1,7 +1,4 @@
 #include "arena_obstacles.h"
-extern GLuint g_texturaObstaculo;
-extern bool toggle_texture;
-
 
 void CircularObstacle::DrawObstacle()
 {
@@ -16,13 +13,13 @@ void CircularObstacle::DrawObstacle()
         {
             DrawTexturedCylinderOutside(
                 this->GetRadius(),
-                this->GetHeight(),
+                this->GetHeightScale() * player_height,
                 g_texturaObstaculo
             );
 
             DrawTexturedFloor(
                 this->GetRadius(), 
-                this->GetHeight(), 
+                this->GetHeightScale() * player_height, 
                 g_texturaObstaculo
             );
         }
@@ -30,7 +27,7 @@ void CircularObstacle::DrawObstacle()
         {
             DrawClosedCilinder(
                 this->GetRadius(),
-                this->GetHeight(),
+                this->GetHeightScale() * player_height,
                 this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
                 CIRCULAR_OBSTACLE_RES
             );

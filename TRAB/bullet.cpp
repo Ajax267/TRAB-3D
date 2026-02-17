@@ -95,9 +95,9 @@ bool Bullet::ObstacleCollision(CircularArena& arena, std::vector<CircularObstacl
             {
                 if (
                     (this->GetPosition().GetZ() + this->GetRadius() >= obstacle.GetPosition().GetZ() &&
-                    this->GetPosition().GetZ() + this->GetRadius() <= obstacle.GetHeight()) ||
+                    this->GetPosition().GetZ() + this->GetRadius() <= obstacle.GetHeightScale() * player_height) ||
                     (this->GetPosition().GetZ() - this->GetRadius() >= obstacle.GetPosition().GetZ() &&
-                    this->GetPosition().GetZ() - this->GetRadius() <= obstacle.GetHeight())
+                    this->GetPosition().GetZ() - this->GetRadius() <=obstacle.GetHeightScale() * player_height)
                 )
                 {
                     return true;
@@ -130,9 +130,9 @@ bool Bullet::PlayerCollision(CircularArena& arena, std::vector<ArenaPlayer>& pla
             {
                 if (
                     (this->GetPosition().GetZ() + this->GetRadius() >= current_player.GetPosition().GetZ() &&
-                    this->GetPosition().GetZ() + this->GetRadius() <= current_player.GetPosition().GetZ() + current_player.GetHeight()) ||
+                    this->GetPosition().GetZ() + this->GetRadius() <= current_player.GetPosition().GetZ() + player_height) ||
                     ((this->GetPosition().GetZ() - this->GetRadius() >= current_player.GetPosition().GetZ() &&
-                    this->GetPosition().GetZ() - this->GetRadius() <= current_player.GetPosition().GetZ() + current_player.GetHeight()))
+                    this->GetPosition().GetZ() - this->GetRadius() <= current_player.GetPosition().GetZ() + player_height))
                 )
                 {
                     current_player.GotHit();

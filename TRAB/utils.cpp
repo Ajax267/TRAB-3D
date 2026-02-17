@@ -202,7 +202,7 @@ void ChangeCoordSys(
     y[0] = ax - bx; y[1] = ay - by; y[2] = az - bz;
     normalize_3d(y);
 
-    float up[3] = {upx, upy, upz};
+    float up[3] = { (float) upx, (float) upy, (float) upz};
     normalize_3d(up);
 
     cross_product_3d(y, up, x);

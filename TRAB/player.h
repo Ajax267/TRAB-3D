@@ -21,8 +21,9 @@
 #define GUN_ROTATIONAL_SPEED 100.0 // Para mover para cima e para baixo se mantenha consistente
 #define PLAYER_HEALTH 3
 
-#define PLAYER_HEIGHT 10
-#define OBSTACLE_HEIGHT PLAYER_HEIGHT
+extern double player_height;
+#define OBSTACLE_HEIGHT_SCALE 1.0
+#define MAX_JUMP_HEIGHT_SCALE 2.0
 #define PLAYER_RES 10
 
 #define BULLET_VEL (PLAYER_SPEED*2.0)
@@ -44,8 +45,6 @@
 #define JUMP_DECAY_OBSTACLE 1
 #define JUMP_DECAY_PLAYER 2
 #define MAX_JUMP_HEIGHT PLAYER_HEIGHT*2
-
-
 #define LANTERN_Z_SCALE 1.5
 
 class Bullet; // forward declaration
@@ -65,7 +64,6 @@ class ArenaPlayer : public CircularEntityDefinition
         int _soldadoMov = -1;
         int _soldadoFrame = 0;
         double _soldadoAccumMs = 0.0;
-        float height = PLAYER_HEIGHT;
         bool on_obstacle = false;
         bool on_player = false;
         float current_jump_height = 0;
@@ -146,10 +144,8 @@ class ArenaPlayer : public CircularEntityDefinition
 
     
         void UpdateSoldadoAnim(double dtMs, bool andando);
-        int GetSoldadoMov() const { return _soldadoMov;}
-        int GetSoldadoFrame() const { return _soldadoFrame;}
-        const float& GetHeight() const {return this->height;};
-        void SetHeight(float height) {this->height=height;};
+        int GetSoldadoMov() const { return _soldadoMov;};
+        int GetSoldadoFrame() const { return _soldadoFrame;};
 
         const bool& GetJumpDecay() const {return this->jump_decay;};
 
