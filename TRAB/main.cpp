@@ -1208,6 +1208,11 @@ void keyPress(unsigned char key, int x, int y)
         g_drawSoldado=!g_drawSoldado;
         break;
 
+    case 'j':
+    case 'J':
+        multiviewport=!multiviewport;
+        break;
+
     case PLUS_KEY:
         if (camera_type_num == THIRD_PERSON_CAMERA)
         {
