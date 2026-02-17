@@ -52,6 +52,7 @@ void ArenaPlayer::DrawLegs()
     }
 }
 
+
 void ArenaPlayer::DrawLanternLight()
 {
     //Checar se está certo ...
@@ -73,7 +74,7 @@ void ArenaPlayer::DrawLanternLight()
 
         GLfloat light_center[] = { 0.0, 0.0, 0.0, 1.0 };
         glLightfv( player_light, GL_POSITION, light_center);
-        GLfloat light_dir[] = { 0.0, 1.0, 0.0, 1.0 };
+        GLfloat light_dir[] = { 0.0, -1.0, 0.0, 1.0 };
         glLightfv( player_light, GL_SPOT_DIRECTION, light_dir);
         // glLightf(player_light, GL_QUADRATIC_ATTENUATION, 1.0);
         glLightf(player_light, GL_SPOT_CUTOFF, 20.0);
@@ -97,6 +98,7 @@ void ArenaPlayer::DrawLanternLight()
         
     glPopMatrix();
 }
+
 
 void ArenaPlayer::DrawArm()
 {
@@ -281,7 +283,7 @@ void ArenaPlayer::RotateGunRoll(GLdouble timeDiference)
 void ArenaPlayer::Shoot()
 {
     glPushMatrix();
-        glLoadIdentity(); //Camera interfere no viewmodel matrix
+        glLoadIdentity(); //Camera interfere no modelview matrix
         glTranslatef(
             this->GetPosition().GetX(),
             -this->GetPosition().GetY(),
