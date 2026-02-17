@@ -62,6 +62,9 @@ class ArenaPlayer : public CircularEntityDefinition
         int _id;
         short _last_leg_id = LEFT_LEG_ID;
         bool is_leg_rotated = false;
+        int _soldadoMov = -1;
+        int _soldadoFrame = 0;
+        double _soldadoAccumMs = 0.0;
         float height = PLAYER_HEIGHT;
         bool on_obstacle = false;
         bool on_player = false;
@@ -141,6 +144,10 @@ class ArenaPlayer : public CircularEntityDefinition
         void SetLastAnimationAttemptPosition(PositionDefinition pos)
             {this->last_animation_attempt_position = pos;};
 
+    
+        void UpdateSoldadoAnim(double dtMs, bool andando);
+        int GetSoldadoMov() const { return _soldadoMov;}
+        int GetSoldadoFrame() const { return _soldadoFrame;}
         const float& GetHeight() const {return this->height;};
         void SetHeight(float height) {this->height=height;};
 
