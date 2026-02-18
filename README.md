@@ -6,7 +6,7 @@ S -> Andar Para Trás
 
 D -> Rotacionar para a Direita 
 
-S -> Rotacionar para a Esquerda 
+A -> Rotacionar para a Esquerda 
 
 X -> Pular
 
@@ -20,17 +20,13 @@ O -> Andar Para Frente
 
 L -> Andar Para Trás
 
-K -> Rotacionar para a Direita 
+K -> Rotacionar para a Esquerda 
 
-Ç -> Rotacionar para a Esquerda 
+Ç -> Rotacionar para a Direita
 
 . -> Pular
 
 5 -> Atirar
-
-2 -> Rotacionar a Arma para Baixo
-
-8 -> Rotacionar a Arma para Cima
 
 2 -> Rotacionar a Arma para Baixo
 
@@ -52,7 +48,7 @@ B -> Câmera em Terceira Pessoa
 
 V -> Câmera na Arma
 
-H -> Câmera da Arena
+H -> Habilita/Desabilita Câmera da Arena
 
 Y -> Câmera de Espectador (Só pode ser usada na câmera da Arena, e para se mover, use W para Frente, S para Trás, e o Mouse para girar)
 

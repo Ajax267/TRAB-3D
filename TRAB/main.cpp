@@ -974,8 +974,6 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
         }
     }
 
-    DrawArenaLights();
-
     if (toggle_axes)
         DrawAxes(100);
 
@@ -985,12 +983,14 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
         glEnable(GL_LIGHT1);
         glEnable(GL_LIGHT2);
 
+        DrawArenaLights();
         g_players[0].UpdateLanternLight();
         g_players[1].UpdateLanternLight();
 
     }
     else
     {
+        glDisable(GL_LIGHTING);
         glDisable(GL_LIGHT1);
         glDisable(GL_LIGHT2);
     }
