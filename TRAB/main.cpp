@@ -115,8 +115,6 @@ float camThirdPersonPlayer1XYAngle = 0;
 float camThirdPersonPlayer2XZAngle = 0;
 float camThirdPersonPlayer2XYAngle = 0;
 
-
-
 // Camera Modes
 #define EYE_CAMERA 0
 #define GUN_CAMERA 1
@@ -138,7 +136,6 @@ bool night_mode = false;
 bool toggle_axes = false;
 bool g_debugCompareModel = false;
 
-
 // Meshes
 meshes g_soldado;
 bool g_drawSoldado = true;
@@ -156,11 +153,11 @@ double player_height = SOLDIER_MODEL_HEIGHT * g_modelScale;
 meshes g_arma;
 int movArma = -1;
 
-//texturas
+// texturas
 GLuint g_texturaParedeArena = 0;
 GLuint g_texturaChao = 0;
 GLuint g_texturaObstaculo = 0;
-
+GLuint g_texturaBala = 0;
 
 /**
  * @brief Pega a altura do modelo 3d ou do cilindro
@@ -172,8 +169,6 @@ static inline float PlayerVisualHeight()
     return player_height;
 }
 
-
-
 /**
  * @brief Pega uma porcentagem da altura para dar offset pra camera do olho
  */
@@ -181,7 +176,6 @@ static inline float PlayerEyeOffset()
 {
     return 0.9f * PlayerVisualHeight();
 }
-
 
 /**
  * @brief Pega uma porcentagem da altura para dar offset pra camera da arma
@@ -192,8 +186,6 @@ static inline float PlayerGunOffset()
 }
 // Enable Multi Viewport
 bool multiviewport = true;
-
-
 
 /**
  * @brief Changes camera configs.
@@ -210,22 +202,21 @@ void changeCamera(int angle, int w, int h, GLdouble near = 5, GLdouble far = 800
     glMatrixMode(GL_MODELVIEW);
 }
 
-
-
 /**
  * @brief Changes camera configs.
  */
 void changeCameraType(int camera_type_num)
 {
 
-    if (camera_type_num == EYE_CAMERA) changeCamera(start_angle,glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-    else if (camera_type_num == GUN_CAMERA) changeCamera(90,glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT),1,g_arena.GetRadius()*2);
-    else if (camera_type_num == THIRD_PERSON_CAMERA) changeCamera(90,glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT),1,g_arena.GetRadius()*2);
-    else if (camera_type_num == SPECTATOR_CAMERA) changeCamera(start_angle,glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-
+    if (camera_type_num == EYE_CAMERA)
+        changeCamera(start_angle, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    else if (camera_type_num == GUN_CAMERA)
+        changeCamera(90, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 1, g_arena.GetRadius() * 2);
+    else if (camera_type_num == THIRD_PERSON_CAMERA)
+        changeCamera(90, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 1, g_arena.GetRadius() * 2);
+    else if (camera_type_num == SPECTATOR_CAMERA)
+        changeCamera(start_angle, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 }
-
-
 
 /**
  * @brief Starts Player Eye Camera Params.
@@ -240,14 +231,12 @@ void init_player_eye_camera_coords(int player_id)
     }
     else
     {
-        float offset =  g_players[player_id - 1].GetRadius() * 0.75;
+        float offset = g_players[player_id - 1].GetRadius() * 0.75;
         camera_coords[0] = g_players[player_id - 1].GetPosition().GetX() + offset * g_players[player_id - 1].GetDirection().GetY();
         camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY() + offset * g_players[player_id - 1].GetDirection().GetX();
-        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerEyeOffset();  
+        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerEyeOffset();
     }
 }
-
-
 
 /**
  * @brief Starts Player Gun Camera Params.
@@ -256,7 +245,7 @@ void init_player_gun_camera_coords(int player_id)
 {
     if (!g_drawSoldado)
     {
-        float offset = g_players[player_id - 1].GetRadius() * ARM_WIDTH_MULTIPLER/2 + g_players[player_id - 1].GetRadius();
+        float offset = g_players[player_id - 1].GetRadius() * ARM_WIDTH_MULTIPLER / 2 + g_players[player_id - 1].GetRadius();
         camera_coords[0] = g_players[player_id - 1].GetPosition().GetX() + offset * g_players[player_id - 1].GetDirection().GetY();
         camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY() + offset * g_players[player_id - 1].GetDirection().GetX(); //- g_players[0].GetRadius()* g_players[0].GetDirection().GetY();
         camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerGunOffset();
@@ -266,11 +255,9 @@ void init_player_gun_camera_coords(int player_id)
         float offset = g_players[player_id - 1].GetRadius();
         camera_coords[0] = g_players[player_id - 1].GetPosition().GetX() + offset * g_players[player_id - 1].GetDirection().GetY();
         camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY() + offset * g_players[player_id - 1].GetDirection().GetX(); //- g_players[0].GetRadius()* g_players[0].GetDirection().GetY();
-        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerGunOffset() * (0.8/1.2);
+        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerGunOffset() * (0.8 / 1.2);
     }
 }
-
-
 
 /**
  * @brief Starts Player Third Person Camera Params.
@@ -282,8 +269,6 @@ void init_player_third_person_camera_coords(int player_id)
     camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerEyeOffset();
 }
 
-
-
 /**
  * @brief Starts Spectator Camera Params.
  */
@@ -293,8 +278,6 @@ void init_spectator_camera_coords(void)
     camera_coords[1] = spectator_camera_coords[1]; //-g_arena.GetRadius()*2.5; -400,400
     camera_coords[2] = spectator_camera_coords[2]; // g_arena.GetRadius()*1.5;
 }
-
-
 
 /**
  * @brief Init Spectator Camera Direction Vector
@@ -320,8 +303,6 @@ void init_spectator_camera_direction_vector(void)
     camSpectatorXZAngle = atan2(look_spectator_camera_coords[0], -look_spectator_camera_coords[2]) * 180.0 / M_PI;
 }
 
-
-
 /**
  * @brief Init Spectator Camera Direction Vector
  */
@@ -336,18 +317,15 @@ void init_third_person_camera_direction_vector(void)
     // look_spectator_camera_coords[2] = -cos(camSpectatorXYAngle * M_PI/180.0) * cos(camSpectatorXZAngle * M_PI/180.0);
 
     // camera_coords[0] + CAMERA_THIRD_PERSON_START_DISTANCE *  g_players[player_id-1].GetDirection().GetX() * sin((camThirdPersonXYAngle*M_PI/180)),
-    // camera_coords[1] - CAMERA_THIRD_PERSON_START_DISTANCE * (g_players[player_id-1].GetDirection().GetY()) * sin(camThirdPersonXZAngle*M_PI/180)*cos((camThirdPersonXYAngle*M_PI/180)), 
+    // camera_coords[1] - CAMERA_THIRD_PERSON_START_DISTANCE * (g_players[player_id-1].GetDirection().GetY()) * sin(camThirdPersonXZAngle*M_PI/180)*cos((camThirdPersonXYAngle*M_PI/180)),
     // camera_coords[2] + PLAYER_HEIGHT + CAMERA_THIRD_PERSON_START_DISTANCE *cos(camThirdPersonXZAngle*M_PI/180)*cos((camThirdPersonXYAngle*M_PI/180)),
 
-    camThirdPersonPlayer1XYAngle = asin( g_players[PLAYER1_ID-1].GetDirection().GetX() ) * 180.0/M_PI;
-    camThirdPersonPlayer1XZAngle = atan2( -(g_players[PLAYER1_ID-1].GetDirection().GetY()),player_height) * 180.0/M_PI;
+    camThirdPersonPlayer1XYAngle = asin(g_players[PLAYER1_ID - 1].GetDirection().GetX()) * 180.0 / M_PI;
+    camThirdPersonPlayer1XZAngle = atan2(-(g_players[PLAYER1_ID - 1].GetDirection().GetY()), player_height) * 180.0 / M_PI;
 
-    camThirdPersonPlayer2XYAngle = asin(g_players[PLAYER2_ID-1].GetDirection().GetX()) * 180.0/M_PI;
-    camThirdPersonPlayer2XZAngle = atan2(-(g_players[PLAYER2_ID-1].GetDirection().GetY()), player_height) * 180.0/M_PI;
-
+    camThirdPersonPlayer2XYAngle = asin(g_players[PLAYER2_ID - 1].GetDirection().GetX()) * 180.0 / M_PI;
+    camThirdPersonPlayer2XZAngle = atan2(-(g_players[PLAYER2_ID - 1].GetDirection().GetY()), player_height) * 180.0 / M_PI;
 }
-
-
 
 /**
  * @brief Updates Mouse coordinates.
@@ -396,16 +374,14 @@ void globalmouseMotion(int x, int y)
     }
     if (RightMouseButton == RIGHT_CLICK && RightMouseState == MOUSE_PRESSED && camera_type_num == THIRD_PERSON_CAMERA)
     {
-        camThirdPersonPlayer1XZAngle -= (gCurrentMouseX - gPastMouseX) * MOUSE_SENSITIVY/2;
-        camThirdPersonPlayer1XYAngle += (gCurrentMouseY - gPastMouseY) * MOUSE_SENSITIVY/2;
-        camThirdPersonPlayer2XZAngle += (gCurrentMouseX - gPastMouseX) * MOUSE_SENSITIVY/2;
-        camThirdPersonPlayer2XYAngle -= (gCurrentMouseY - gPastMouseY) * MOUSE_SENSITIVY/2;
+        camThirdPersonPlayer1XZAngle -= (gCurrentMouseX - gPastMouseX) * MOUSE_SENSITIVY / 2;
+        camThirdPersonPlayer1XYAngle += (gCurrentMouseY - gPastMouseY) * MOUSE_SENSITIVY / 2;
+        camThirdPersonPlayer2XZAngle += (gCurrentMouseX - gPastMouseX) * MOUSE_SENSITIVY / 2;
+        camThirdPersonPlayer2XYAngle -= (gCurrentMouseY - gPastMouseY) * MOUSE_SENSITIVY / 2;
     }
 
     glutPostRedisplay();
 }
-
-
 
 /**
  * @brief Get Mouse button and its state.
@@ -438,8 +414,6 @@ void mouseClick(int button, int state, int x, int y)
     }
 }
 
-
-
 /**
  * @brief Updates Player2 all Bullets.
  * @param timeDiference diferença de tempo milissegundo entre duas execuções da mesma função
@@ -460,8 +434,6 @@ void Player2_Bullets(GLdouble timeDiference)
     }
 }
 
-
-
 /**
  * @brief Updates Player1 all Bullets.
  * @param timeDiference diferença de tempo milissegundo entre duas execuções da mesma função
@@ -481,8 +453,6 @@ void Player1_Bullets(GLdouble timeDiference)
         }
     }
 }
-
-
 
 /**
  * @brief Updates Player2 based on pressed Keys.
@@ -548,8 +518,6 @@ void Player2_Keys(GLdouble timeDiference, GLdouble currentTime)
     p2.DecreaseHeight(timeDiference, p1);
     p2.UpdateDecayType(g_arena, g_obstacles, g_players);
 }
-
-
 
 /**
  * @brief Updates Player1 based on pressed Keys.
@@ -624,8 +592,6 @@ void Player1_Keys(GLdouble timeDiference, GLdouble currentTime)
     p1.DecreaseHeight(timeDiference, p2);
 }
 
-
-
 /**
  * @brief Updates Spectator Camera based on pressed Keys.
  * @param timeDiference diferença de tempo milissegundo entre duas execuções da mesma função
@@ -650,8 +616,6 @@ void SpectatorMode_Keys(double deltaTime)
     }
 }
 
-
-
 /**
  * @brief Anima todos os jogadores presentes.
  * @param currentTime Tempo decorrido desde o inicio do jogo em milissegundo
@@ -667,8 +631,6 @@ void AnimatePlayers(GLdouble currentTime)
         last_animation_attempt_time = currentTime;
     }
 }
-
-
 
 /**
  * @brief Renders Text.
@@ -698,8 +660,6 @@ void RasterChars(GLfloat x, GLfloat y, GLfloat z, const char *text, double r, do
     }
     glPopAttrib();
 }
-
-
 
 /**
  * @brief Prints 2D text on the screen.
@@ -737,8 +697,6 @@ void PrintText(GLfloat x, GLfloat y, const char *text, double r, double g, doubl
     glMatrixMode(GL_MODELVIEW);
 }
 
-
-
 /**
  * @brief Prints players score and which player won on the screen.
  * @param x Text X coordinate on the screen
@@ -748,8 +706,8 @@ void PrintText(GLfloat x, GLfloat y, const char *text, double r, double g, doubl
 void ImprimePlacar(GLfloat x, GLfloat y, int player)
 {
 
-    //Cria a string a ser impressa
-    double r = 0.0, g = 1.0, b = 0.0; 
+    // Cria a string a ser impressa
+    double r = 0.0, g = 1.0, b = 0.0;
 
     if (game_winner == NO_PLAYER)
     {
@@ -793,8 +751,6 @@ void ImprimePlacar(GLfloat x, GLfloat y, int player)
     }
 }
 
-
-
 /**
  * @brief Renders Arena Lights.
  */
@@ -821,46 +777,39 @@ void DrawArenaLights()
         GLfloat light_center_specular[] = {1.0, 1.0, 1.0, 1.0};
         glLightfv(GL_LIGHT0, GL_SPECULAR, light_center_specular);
     }
-
 }
-
-
-
 
 /**
  * @brief Renders Minimap HUD.
  */
 void renderMinimap(int player_id)
 {
-    //Draw text considering a 2D space (disable all 3d features)
-    glMatrixMode (GL_PROJECTION);
-    //Push to recover original PROJECTION MATRIX
+    // Draw text considering a 2D space (disable all 3d features)
+    glMatrixMode(GL_PROJECTION);
+    // Push to recover original PROJECTION MATRIX
     glPushMatrix();
-        glLoadIdentity();
-        // Peguei o glOrtho do Trabalho anterior
-        // Para não me preocupar com a conversão de nada
-        glOrtho(
-            -(VWidth/2),     // X coordinate of left edge             
-            (VWidth/2),     // X coordinate of right edge            
-            -(VHeight/2), //-(VHeight/2)     // Y coordinate of bottom edge            
-            (VHeight/2),// (VHeight/2)     // Y coordinate of top edge
-            -1,  // Z coordinate of the “near” plane            
-            1
-        );
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-            glLoadIdentity();
-            glDisable(GL_LIGHTING);
-            g_minimap.DrawMinimap(player_id);
-            glEnable(GL_LIGHTING);
-        glPopMatrix();
-        glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    // Peguei o glOrtho do Trabalho anterior
+    // Para não me preocupar com a conversão de nada
+    glOrtho(
+        -(VWidth / 2),  // X coordinate of left edge
+        (VWidth / 2),   // X coordinate of right edge
+        -(VHeight / 2), //-(VHeight/2)     // Y coordinate of bottom edge
+        (VHeight / 2),  // (VHeight/2)     // Y coordinate of top edge
+        -1,             // Z coordinate of the “near” plane
+        1);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glDisable(GL_LIGHTING);
+    g_minimap.DrawMinimap(player_id);
+    glEnable(GL_LIGHTING);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
 
     glPopMatrix();
-    glMatrixMode (GL_MODELVIEW);
+    glMatrixMode(GL_MODELVIEW);
 }
-
-
 
 /**
  * @brief Renders OpenGL images.
@@ -870,122 +819,58 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     // gluLookAt(0,-400,400, 0,0,0, 0,1,0);
-        if (!fixed_camera)
+    if (!fixed_camera)
+    {
+        if (!toggle_player_camera)
         {
-            if (!toggle_player_camera)
-            {
-                init_spectator_camera_coords();
-                gluLookAt(
-                    camera_coords[0],
-                    camera_coords[1],
-                    camera_coords[2],
-                    camera_coords[0] + look_spectator_camera_coords[0],
-                    camera_coords[1] + look_spectator_camera_coords[1],
-                    camera_coords[2] + look_spectator_camera_coords[2],
-                    camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
-            }
-            else
-            {
-     
-                if (camera_type_num == EYE_CAMERA)
-                {
-                    init_player_eye_camera_coords(player_id);
-                    gluLookAt(
-                        camera_coords[0],
-                        camera_coords[1],
-                        camera_coords[2],
-                        camera_coords[0] - g_players[player_id-1].GetDirection().GetX(), 
-                        camera_coords[1] + g_players[player_id-1].GetDirection().GetY(),
-                        camera_coords[2] + g_players[player_id-1].GetDirection().GetZ(),
-                        camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
-                    );
-                }
-                else if (camera_type_num == GUN_CAMERA)
-                {
-                    init_player_gun_camera_coords(player_id);
-                    // gluLookAt(
-                    //     camera_coords[0],
-                    //     camera_coords[1],
-                    //     camera_coords[2] + player_height,
-                    //     camera_coords[0] - g_players[player_id-1].GetDirection().GetX(), 
-                    //     camera_coords[1] + g_players[player_id-1].GetDirection().GetY(),
-                    //     camera_coords[2] + player_height,
-                    //     camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
-                    // ); 
-                    gluLookAt(
-                    camera_coords[0],
-                    camera_coords[1],
-                    camera_coords[2],
-                    camera_coords[0] - g_players[player_id - 1].GetDirection().GetX(),
-                    camera_coords[1] + g_players[player_id - 1].GetDirection().GetY(),
-                    camera_coords[2],
-                    camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
-                    );   
-                }
-                else if (camera_type_num == THIRD_PERSON_CAMERA)
-                {
-                    float camThirdPersonXYAngle = 0;
-                    float camThirdPersonXZAngle = 0;
-
-                    if (player_id == PLAYER1_ID)
-                    {
-                        camThirdPersonXYAngle = camThirdPersonPlayer1XYAngle;
-                        camThirdPersonXZAngle = camThirdPersonPlayer1XZAngle;
-                    }
-                    else if ( player_id == PLAYER2_ID )
-                    {
-                        camThirdPersonXYAngle = camThirdPersonPlayer2XYAngle;
-                        camThirdPersonXZAngle = camThirdPersonPlayer2XZAngle;  
-                    }
-                    init_player_third_person_camera_coords(player_id);
- 
-                    gluLookAt(
-                        camera_coords[0] + camThirdPersonZoom  * sin(camThirdPersonXZAngle*M_PI/180)*cos((camThirdPersonXYAngle*M_PI/180)), // * g_players[player_id-1].GetDirection().GetX(),
-                        camera_coords[1] - camThirdPersonZoom  * sin((camThirdPersonXYAngle*M_PI/180)), // * g_players[player_id-1].GetDirection().GetY(), 
-                        camera_coords[2] + camThirdPersonZoom  * cos(camThirdPersonXZAngle*M_PI/180)*cos((camThirdPersonXYAngle*M_PI/180)),
-                        camera_coords[0], 
-                        camera_coords[1],
-                        camera_coords[2],
-                        camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
-                    );       
-                }
-            }
+            init_spectator_camera_coords();
+            gluLookAt(
+                camera_coords[0],
+                camera_coords[1],
+                camera_coords[2],
+                camera_coords[0] + look_spectator_camera_coords[0],
+                camera_coords[1] + look_spectator_camera_coords[1],
+                camera_coords[2] + look_spectator_camera_coords[2],
+                camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
         }
         else
         {
-            // Apenas para não estragar o funcionamento planejado
-            if (camera_num == EYE_CAMERA)
-                {
-                    init_player_eye_camera_coords(player_id);
-                    // Testing Player 1 Camera
-                    gluLookAt(
-                        camera_coords[0],
-                        camera_coords[1],
-                        camera_coords[2],
-                        camera_coords[0] - g_players[player_id-1].GetDirection().GetX(), 
-                        camera_coords[1] + g_players[player_id-1].GetDirection().GetY(),
-                        camera_coords[2] + g_players[player_id-1].GetDirection().GetZ(),
-                        camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
-                    );
-                }
-            else if (camera_num == GUN_CAMERA)
-            {
-                init_player_gun_camera_coords(player_id);
 
+            if (camera_type_num == EYE_CAMERA)
+            {
+                init_player_eye_camera_coords(player_id);
                 gluLookAt(
                     camera_coords[0],
                     camera_coords[1],
-                    camera_coords[2] + PlayerGunOffset(),
+                    camera_coords[2],
                     camera_coords[0] - g_players[player_id - 1].GetDirection().GetX(),
                     camera_coords[1] + g_players[player_id - 1].GetDirection().GetY(),
-                    camera_coords[2] + PlayerGunOffset(),
-                    camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
-                );
+                    camera_coords[2] + g_players[player_id - 1].GetDirection().GetZ(),
+                    camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
             }
-            else if (camera_num == THIRD_PERSON_CAMERA)
+            else if (camera_type_num == GUN_CAMERA)
             {
-                init_player_third_person_camera_coords(player_id);
-                
+                init_player_gun_camera_coords(player_id);
+                // gluLookAt(
+                //     camera_coords[0],
+                //     camera_coords[1],
+                //     camera_coords[2] + player_height,
+                //     camera_coords[0] - g_players[player_id-1].GetDirection().GetX(),
+                //     camera_coords[1] + g_players[player_id-1].GetDirection().GetY(),
+                //     camera_coords[2] + player_height,
+                //     camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
+                // );
+                gluLookAt(
+                    camera_coords[0],
+                    camera_coords[1],
+                    camera_coords[2],
+                    camera_coords[0] - g_players[player_id - 1].GetDirection().GetX(),
+                    camera_coords[1] + g_players[player_id - 1].GetDirection().GetY(),
+                    camera_coords[2],
+                    camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+            }
+            else if (camera_type_num == THIRD_PERSON_CAMERA)
+            {
                 float camThirdPersonXYAngle = 0;
                 float camThirdPersonXZAngle = 0;
 
@@ -999,63 +884,132 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
                     camThirdPersonXYAngle = camThirdPersonPlayer2XYAngle;
                     camThirdPersonXZAngle = camThirdPersonPlayer2XZAngle;
                 }
+                init_player_third_person_camera_coords(player_id);
 
                 gluLookAt(
-                    camera_coords[0] + camThirdPersonZoom  * sin(camThirdPersonXZAngle*M_PI/180)*cos((camThirdPersonXYAngle*M_PI/180)), // * g_players[player_id-1].GetDirection().GetX(),
-                    camera_coords[1] - camThirdPersonZoom  * sin((camThirdPersonXYAngle*M_PI/180)), // * g_players[player_id-1].GetDirection().GetY(), 
-                    camera_coords[2] + camThirdPersonZoom  * cos(camThirdPersonXZAngle*M_PI/180)*cos((camThirdPersonXYAngle*M_PI/180)),
-                    camera_coords[0], 
+                    camera_coords[0] + camThirdPersonZoom * sin(camThirdPersonXZAngle * M_PI / 180) * cos((camThirdPersonXYAngle * M_PI / 180)), // * g_players[player_id-1].GetDirection().GetX(),
+                    camera_coords[1] - camThirdPersonZoom * sin((camThirdPersonXYAngle * M_PI / 180)),                                           // * g_players[player_id-1].GetDirection().GetY(),
+                    camera_coords[2] + camThirdPersonZoom * cos(camThirdPersonXZAngle * M_PI / 180) * cos((camThirdPersonXYAngle * M_PI / 180)),
+                    camera_coords[0],
                     camera_coords[1],
                     camera_coords[2],
-                    camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
-                );     
-            }  
-        }
-
-        DrawArenaLights();
-
-        if(toggle_axes)DrawAxes(100);
-
-        if(player_id == PLAYER1_ID) glDisable(GL_LIGHT2);
-        else if (player_id == PLAYER2_ID) glDisable(GL_LIGHT1); 
-
-
-        g_arena.DrawArena();
-
-        for ( CircularObstacle& obstacle : g_obstacles)
-        {
-            obstacle.DrawObstacle();
-        }
-        for ( ArenaPlayer& player : g_players)
-        {
-            if (game_winner == PLAYER1_WON && player.GetId() == PLAYER2_ID) continue;
-            if (game_winner == PLAYER2_WON && player.GetId() == PLAYER1_ID) continue;
-            if (game_winner == DRAW) break; // Does not draw any player
-            
-            player.DrawPlayer();
-            for ( Bullet& bullet : player.GetBulletVec())
-            {
-                bullet.DrawBullet();
+                    camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
             }
         }
-        if (!fixed_camera)
+    }
+    else
+    {
+        // Apenas para não estragar o funcionamento planejado
+        if (camera_num == EYE_CAMERA)
         {
-            if (!(game_finished))
-            {
-                ImprimePlacar(-VWidth*0.5,VHeight*0.45, PLACAR_PLAYER1);
-                ImprimePlacar(-VWidth*0.5,VHeight*0.40, PLACAR_PLAYER2);
-            }
-            else ImprimePlacar(-VWidth*0.05,VHeight*0, game_winner); 
+            init_player_eye_camera_coords(player_id);
+            // Testing Player 1 Camera
+            gluLookAt(
+                camera_coords[0],
+                camera_coords[1],
+                camera_coords[2],
+                camera_coords[0] - g_players[player_id - 1].GetDirection().GetX(),
+                camera_coords[1] + g_players[player_id - 1].GetDirection().GetY(),
+                camera_coords[2] + g_players[player_id - 1].GetDirection().GetZ(),
+                camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
         }
+        else if (camera_num == GUN_CAMERA)
+        {
+            init_player_gun_camera_coords(player_id);
 
-        if(player_id == PLAYER1_ID) glEnable(GL_LIGHT2);
-        else if (player_id == PLAYER2_ID) glEnable(GL_LIGHT1); 
+            gluLookAt(
+                camera_coords[0],
+                camera_coords[1],
+                camera_coords[2] + PlayerGunOffset(),
+                camera_coords[0] - g_players[player_id - 1].GetDirection().GetX(),
+                camera_coords[1] + g_players[player_id - 1].GetDirection().GetY(),
+                camera_coords[2] + PlayerGunOffset(),
+                camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+        }
+        else if (camera_num == THIRD_PERSON_CAMERA)
+        {
+            init_player_third_person_camera_coords(player_id);
+
+            float camThirdPersonXYAngle = 0;
+            float camThirdPersonXZAngle = 0;
+
+            if (player_id == PLAYER1_ID)
+            {
+                camThirdPersonXYAngle = camThirdPersonPlayer1XYAngle;
+                camThirdPersonXZAngle = camThirdPersonPlayer1XZAngle;
+            }
+            else if (player_id == PLAYER2_ID)
+            {
+                camThirdPersonXYAngle = camThirdPersonPlayer2XYAngle;
+                camThirdPersonXZAngle = camThirdPersonPlayer2XZAngle;
+            }
+
+            gluLookAt(
+                camera_coords[0] + camThirdPersonZoom * sin(camThirdPersonXZAngle * M_PI / 180) * cos((camThirdPersonXYAngle * M_PI / 180)), // * g_players[player_id-1].GetDirection().GetX(),
+                camera_coords[1] - camThirdPersonZoom * sin((camThirdPersonXYAngle * M_PI / 180)),                                           // * g_players[player_id-1].GetDirection().GetY(),
+                camera_coords[2] + camThirdPersonZoom * cos(camThirdPersonXZAngle * M_PI / 180) * cos((camThirdPersonXYAngle * M_PI / 180)),
+                camera_coords[0],
+                camera_coords[1],
+                camera_coords[2],
+                camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+        }
+    }
+
+    DrawArenaLights();
+
+    if (toggle_axes)
+        DrawAxes(100);
+
+    if (toggle_light)
+    {
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT1);
+        glEnable(GL_LIGHT2);
+
+        g_players[0].UpdateLanternLight();
+        g_players[1].UpdateLanternLight();
+
+    }
+    else
+    {
+        glDisable(GL_LIGHT1);
+        glDisable(GL_LIGHT2);
+    }
+
+    g_arena.DrawArena();
+
+    for (CircularObstacle &obstacle : g_obstacles)
+    {
+        obstacle.DrawObstacle();
+    }
+    for (ArenaPlayer &player : g_players)
+    {
+        if (game_winner == PLAYER1_WON && player.GetId() == PLAYER2_ID)
+            continue;
+        if (game_winner == PLAYER2_WON && player.GetId() == PLAYER1_ID)
+            continue;
+        if (game_winner == DRAW)
+            break; // Does not draw any player
+
+        player.DrawPlayer();
+        for (Bullet &bullet : player.GetBulletVec())
+        {
+            bullet.DrawBullet();
+        }
+    }
+    if (!fixed_camera)
+    {
+        if (!(game_finished))
+        {
+            ImprimePlacar(-VWidth * 0.5, VHeight * 0.45, PLACAR_PLAYER1);
+            ImprimePlacar(-VWidth * 0.5, VHeight * 0.40, PLACAR_PLAYER2);
+        }
+        else
+            ImprimePlacar(-VWidth * 0.05, VHeight * 0, game_winner);
+    }
+
     
-    glPopMatrix();
-
 }
-
-
 
 /**
  * @brief Renders Viewports.
@@ -1063,89 +1017,79 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
 void renderViewports(void)
 {
     // Clear the screen.
-    glClear (   GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        if (multiviewport)
-        {
-            // Cameras Dinamicas Dos Personagens
-            glViewport (
-                0,
-                0,
-                (GLsizei) Width/2.0, 
-                (GLsizei) Height * (5.0/7.0)
-            );
-            renderScene(PLAYER1_ID);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (multiviewport)
+    {
+        // Cameras Dinamicas Dos Personagens
+        glViewport(
+            0,
+            0,
+            (GLsizei)Width / 2.0,
+            (GLsizei)Height * (5.0 / 7.0));
+        renderScene(PLAYER1_ID);
 
-            glViewport (
-                (GLsizei) Width/2.0,
-                0,
-                (GLsizei) Width/2.0, 
-                (GLsizei) Height * (5.0/7.0)
-            );
-            renderScene(PLAYER2_ID);
+        glViewport(
+            (GLsizei)Width / 2.0,
+            0,
+            (GLsizei)Width / 2.0,
+            (GLsizei)Height * (5.0 / 7.0));
+        renderScene(PLAYER2_ID);
 
-            // Cameras Fixas Do Olho
-            changeCameraType(EYE_CAMERA);
+        // Cameras Fixas Do Olho
+        changeCameraType(EYE_CAMERA);
 
-            glViewport (
-                0,
-                (GLsizei) Height * (5.0/7.0),
-                (GLsizei) Width/2.0, 
-                (GLsizei) Height * (2.0/7.0)
-            );
-            renderScene(PLAYER1_ID,true,EYE_CAMERA);
+        glViewport(
+            0,
+            (GLsizei)Height * (5.0 / 7.0),
+            (GLsizei)Width / 2.0,
+            (GLsizei)Height * (2.0 / 7.0));
+        renderScene(PLAYER1_ID, true, EYE_CAMERA);
 
-            glViewport (
-                (GLsizei) Width/2.0,
-                (GLsizei) Height * (5.0/7.0),
-                (GLsizei) Width/2.0, 
-                (GLsizei) Height * (2.0/7.0)
-            );
-            renderScene(PLAYER2_ID,true,EYE_CAMERA);
+        glViewport(
+            (GLsizei)Width / 2.0,
+            (GLsizei)Height * (5.0 / 7.0),
+            (GLsizei)Width / 2.0,
+            (GLsizei)Height * (2.0 / 7.0));
+        renderScene(PLAYER2_ID, true, EYE_CAMERA);
 
-            // Minimapas
+        // Minimapas
 
-            glViewport (
-                (GLsizei) (Width/2.0) * (3.0/4.0),
-                0,
-                (GLsizei) Width/2.0 * (1.0/4.0), 
-                (GLsizei) Height * (5.0/7.0)  * (1.0/4.0)
-            );
-            renderMinimap(PLAYER1_ID);
+        glViewport(
+            (GLsizei)(Width / 2.0) * (3.0 / 4.0),
+            0,
+            (GLsizei)Width / 2.0 * (1.0 / 4.0),
+            (GLsizei)Height * (5.0 / 7.0) * (1.0 / 4.0));
+        renderMinimap(PLAYER1_ID);
 
-            glViewport (
-                (GLsizei) Width * (3.5/4.0), // ou (Width/2.0) + (Width/2.0) * (3.0/4.0),
-                0,
-                (GLsizei) Width/2.0 * (1.0/4.0), 
-                (GLsizei) Height * (5.0/7.0)  * (1.0/4.0)
-            );
-            renderMinimap(PLAYER2_ID);
+        glViewport(
+            (GLsizei)Width * (3.5 / 4.0), // ou (Width/2.0) + (Width/2.0) * (3.0/4.0),
+            0,
+            (GLsizei)Width / 2.0 * (1.0 / 4.0),
+            (GLsizei)Height * (5.0 / 7.0) * (1.0 / 4.0));
+        renderMinimap(PLAYER2_ID);
 
-            //Reset Camera settings
-            changeCameraType(camera_type_num);
-        }
+        // Reset Camera settings
+        changeCameraType(camera_type_num);
+    }
     else
     {
         glViewport(
             0,
             0,
-            (GLsizei) Width, 
-            (GLsizei) Height
-        );
-        renderScene(PLAYER1_ID); 
+            (GLsizei)Width,
+            (GLsizei)Height);
+        renderScene(PLAYER1_ID);
 
-        glViewport (
-            (GLsizei) Width * (3.0/4.0),
+        glViewport(
+            (GLsizei)Width * (3.0 / 4.0),
             0,
-            (GLsizei) Width * (1.0/4.0), 
-            (GLsizei) Height * (1.0/4.0)
-        );
+            (GLsizei)Width * (1.0 / 4.0),
+            (GLsizei)Height * (1.0 / 4.0));
         renderMinimap(PLAYER1_ID);
     }
 
     glutSwapBuffers(); // Desenha the new frame of the game.
 }
-
-
 
 /**
  * @brief Initial game config.
@@ -1213,10 +1157,8 @@ void init_game(void)
 
     init_spectator_camera_direction_vector();
     init_third_person_camera_direction_vector();
-    camThirdPersonZoom=CAMERA_THIRD_PERSON_START_DISTANCE;
+    camThirdPersonZoom = CAMERA_THIRD_PERSON_START_DISTANCE;
 }
-
-
 
 /**
  * @brief Gets Key Pressed.
@@ -1258,16 +1200,18 @@ void keyPress(unsigned char key, int x, int y)
 
     case 'm':
     case 'M':
-        toggle_texture=!toggle_texture;
+        toggle_texture = !toggle_texture;
         break;
 
     case 'f':
     case 'F':
-        g_drawSoldado=!g_drawSoldado;
-        if (g_drawSoldado) player_height = SOLDIER_MODEL_HEIGHT * g_modelScale;
-        else player_height = debug_player_height;
+        g_drawSoldado = !g_drawSoldado;
+        if (g_drawSoldado)
+            player_height = SOLDIER_MODEL_HEIGHT * g_modelScale;
+        else
+            player_height = debug_player_height;
         break;
-    
+
     case 't':
     case 'T':
         toggle_axes = !toggle_axes;
@@ -1275,14 +1219,15 @@ void keyPress(unsigned char key, int x, int y)
 
     case 'j':
     case 'J':
-        multiviewport=!multiviewport;
+        multiviewport = !multiviewport;
         break;
 
     case PLUS_KEY:
         if (camera_type_num == THIRD_PERSON_CAMERA)
         {
             camThirdPersonZoom -= CAMERA_THIRD_PERSON_ZOOM_DELTA;
-            if (camThirdPersonZoom <= 10.0) camThirdPersonZoom = 10.0;
+            if (camThirdPersonZoom <= 10.0)
+                camThirdPersonZoom = 10.0;
         }
         break;
 
@@ -1291,9 +1236,10 @@ void keyPress(unsigned char key, int x, int y)
         {
             camThirdPersonZoom += CAMERA_THIRD_PERSON_ZOOM_DELTA;
 
-            if (camThirdPersonZoom >= 90.0) camThirdPersonZoom = 90.0;
+            if (camThirdPersonZoom >= 90.0)
+                camThirdPersonZoom = 90.0;
         }
-        break; 
+        break;
 
     //------------------Player 1------------------//
     case 'w':
@@ -1407,15 +1353,12 @@ void keyPress(unsigned char key, int x, int y)
         g_modelScale /= 1.05f;
         printf("g_modelScale = %.4f\n", g_modelScale);
         break;
-        
 
     case ESC_KEY:
         exit(0);
     }
     glutPostRedisplay();
 }
-
-
 
 /**
  * @brief Gets Key Status
@@ -1427,8 +1370,6 @@ void keyup(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
-
-
 /**
  * @brief Reset Key Status
  */
@@ -1439,8 +1380,6 @@ void ResetKeyStatus(void)
     for (i = 0; i < 256; i++)
         keyStatus[i] = 0;
 }
-
-
 
 /**
  * @brief Glut Idle Function
@@ -1493,8 +1432,6 @@ void idle(void)
     gPastMouseY = gCurrentMouseY;
 }
 
-
-
 /**
  * @brief Init Glut Params
  */
@@ -1518,8 +1455,6 @@ void gl_init(void)
     glEnable(GL_TEXTURE_2D);
     changeCameraType(camera_type_num);
 }
-
-
 
 /**
  * @brief Loads Arema
@@ -1590,8 +1525,6 @@ int load_svg(const char *path)
     return 0;
 }
 
-
-
 int main(int argc, char *argv[])
 {
     // Parsing SVG
@@ -1608,14 +1541,14 @@ int main(int argc, char *argv[])
     }
 
     int result = load_svg(argv[1]);
-    if (result) return result;
+    if (result)
+        return result;
     g_minimap.SetArena(g_arena);
     g_minimap.SetObstaclesVec(g_obstacles);
     g_minimap.SetPlayersVec(g_players);
 
     // Viewing Height=Width = Arena Diamater
-    VHeight=VWidth=2*g_arena.GetRadius(); //Useful for orthogonal cam
-
+    VHeight = VWidth = 2 * g_arena.GetRadius(); // Useful for orthogonal cam
 
     // Initialize openGL with Double buffer and RGB color without transparency.
     // Its interesting to try GLUT_SINGLE instead of GLUT_DOUBLE.
@@ -1626,7 +1559,6 @@ int main(int argc, char *argv[])
     glutInitWindowSize(Width, Height);
     glutInitWindowPosition(150, 50);
     glutCreateWindow("Joguin 3D");
-
 
     // Define callbacks.
     glutDisplayFunc(renderViewports);
@@ -1650,6 +1582,8 @@ int main(int argc, char *argv[])
     g_texturaParedeArena = LoadTextureRAW("Blender/parede.bmp");
     g_texturaChao = LoadTextureRAW("Blender/chao.bmp");
     g_texturaObstaculo = LoadTextureRAW("Blender/obstaculo.bmp");
+
+    g_texturaBala = LoadTextureRAW("Blender/bullet.bmp");
     init_game();
     gl_init();
     glutMainLoop();

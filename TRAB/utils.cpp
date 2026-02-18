@@ -360,3 +360,23 @@ void DrawTexturedCylinderOutside(float radius, float height, GLuint textureID)
     glDisable(GL_TEXTURE_2D);
 }
 
+void DrawTexturedSphere(float radius, int slices, int stacks, GLuint textureID)
+{
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    GLfloat mat_white[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_white);
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    GLUquadric* quadric = gluNewQuadric();
+    gluQuadricTexture(quadric, GL_TRUE);      
+    gluQuadricNormals(quadric, GLU_SMOOTH);   
+    
+    // Desenha a esfera
+    gluSphere(quadric, radius, slices, stacks);
+
+    gluDeleteQuadric(quadric);
+    glDisable(GL_TEXTURE_2D);
+}
+

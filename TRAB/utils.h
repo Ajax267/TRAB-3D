@@ -231,6 +231,7 @@ GLuint LoadTextureRAW( const char * filename );
 void DrawTexturedFloor(float radius, float z_position, GLuint textureID);
 void DrawTexturedCylinder(float radius, float height, GLuint textureID);
 void DrawTexturedCylinderOutside(float radius, float height, GLuint textureID);
+void DrawTexturedSphere(float radius, int slices, int stacks, GLuint textureID);
 
 void ChangeCoordSys(
     GLdouble ax, GLdouble ay, GLdouble az,

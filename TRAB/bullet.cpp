@@ -1,5 +1,8 @@
 #include "bullet.h"
 
+extern GLuint g_texturaBala;
+extern bool toggle_texture;
+
 bool Bullet::Move(
     CircularArena& arena,
     std::vector<CircularObstacle>& obstacles_vec,
@@ -36,16 +39,25 @@ void Bullet::DrawBullet()
             -this->GetPosition().GetY(),
             this->GetPosition().GetZ()
         );
-        // printf("Bullet Z : %.3f\n",this->GetPosition().GetZ());
-        // DrawCircWithBorder(
-        //     this->GetRadius(),
-        //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
-        // );
-        DrawSphere(
-            this->GetRadius(),
-            this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
-            BULLET_RES
-        );
+
+        if (toggle_texture)
+        {
+            DrawTexturedSphere(
+                this->GetRadius(), 
+                16, 16, 
+                g_texturaBala
+            );
+        }
+        else
+        {
+            // Código antigo (Cor sólida)
+            DrawSphere(
+                this->GetRadius(),
+                this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB(),
+                BULLET_RES
+            );
+        }
+        
     glPopMatrix();
 }
 

@@ -20,7 +20,7 @@ static const int IDX_HAND_SIDE = 8133;
 
 extern bool night_mode;
 
-//valores pra mover os tiros ate o cano
+// valores pra mover os tiros ate o cano
 static float MUZZLE_X = 0.0f;
 static float MUZZLE_Y = 30.0f;
 static float MUZZLE_Z = 0.0f;
@@ -68,82 +68,54 @@ void ArenaPlayer::DrawLegs()
         this->is_leg_rotated = false;
     }
 }
-
-
-
-void ArenaPlayer::DrawLanternLight()
+void ArenaPlayer::UpdateLanternLight()
 {
-    int player_light = 0;
-    if (this->_id == PLAYER1_ID)
+    GLenum player_light = (_id == PLAYER1_ID) ? GL_LIGHT1 : GL_LIGHT2;
+
+    GLfloat white[] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+    if (night_mode)
     {
-        player_light = GL_LIGHT1;
+        glLightfv(player_light, GL_DIFFUSE, white);
+        glLightfv(player_light, GL_SPECULAR, white);
+        GLfloat weak_amb[] = {0.1f, 0.1f, 0.1f, 1.0f};
+        glLightfv(player_light, GL_AMBIENT, weak_amb);
     }
-    if (this->_id == PLAYER2_ID)
+    else
     {
-        player_light = GL_LIGHT2;    
+        GLfloat black[] = {0.0f, 0.0f, 0.0f, 1.0f};
+        glLightfv(player_light, GL_DIFFUSE, black);
+        glLightfv(player_light, GL_SPECULAR, black);
+        glLightfv(player_light, GL_AMBIENT, black);
     }
 
-    if (g_drawSoldado)
-    {
-        GLfloat modelview_matrix[16];
-        glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);        
-        GLfloat light_position[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-        glLightfv(player_light, GL_POSITION, light_position);
-        
-        GLfloat light_dir[] = { 
-            modelview_matrix[4], 
-            modelview_matrix[5],  
-            modelview_matrix[6], 
-        };
-        glLightfv(player_light, GL_SPOT_DIRECTION, light_dir);
-    }
-    else
-    {
-        glPushMatrix();
-            glTranslatef(
-                (this->GetRadius()*ARM_WIDTH_MULTIPLER - this->GetRadius()*BULLET_RADIUS_SCALER),
-                this->GetRadius()*ARM_HEIGHT_MULTIPLER + this->GetRadius()*BULLET_RADIUS_SCALER,
-                -this->GetRadius()*ARM_WIDTH_MULTIPLER*LANTERN_Z_SCALE
-            );
-            DrawRect3D(
-                this->GetRadius() * ARM_HEIGHT_MULTIPLER * 0.2,
-                this->GetRadius() * ARM_WIDTH_MULTIPLER * 0.2,
-                this->GetRadius() * ARM_WIDTH_MULTIPLER * 0.2,
-                this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB()
-            ); 
-            
-            GLfloat light_center[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-            glLightfv(player_light, GL_POSITION, light_center);
-            
-            GLfloat light_dir[] = { 0.0f, -1.0f, 0.0f};
-            glLightfv(player_light, GL_SPOT_DIRECTION, light_dir);
-        glPopMatrix();
-    }
-    
-    glLightf(player_light, GL_SPOT_CUTOFF, 20.0f);
-    glLightf(player_light, GL_SPOT_EXPONENT, 15.0f);
-    
-    if (!night_mode)
-    {
-        GLfloat light_off[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-        glLightfv(player_light, GL_DIFFUSE, light_off);
-        glLightfv(player_light, GL_AMBIENT, light_off);
-        glLightfv(player_light, GL_SPECULAR, light_off);
-    }
-    else
-    {
-        GLfloat light_diffuse[] = { 0.6f, 0.6f, 0.6f, 1.0f };
-        glLightfv(player_light, GL_DIFFUSE, light_diffuse);
-        
-        GLfloat light_ambient[] = { 0.15f, 0.15f, 0.15f, 1.0f };
-        glLightfv(player_light, GL_AMBIENT, light_ambient);
-        
-        GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        glLightfv(player_light, GL_SPECULAR, light_specular);
-    }
+    glLightf(player_light, GL_CONSTANT_ATTENUATION, 1.0f);
+    glLightf(player_light, GL_LINEAR_ATTENUATION, 0.002f);
+    glLightf(player_light, GL_QUADRATIC_ATTENUATION, 0.0f);
+
+    glLightf(player_light, GL_SPOT_CUTOFF, 35.0f);
+    glLightf(player_light, GL_SPOT_EXPONENT, 10.0f);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    glTranslatef(GetPosition().GetX(), -GetPosition().GetY(), GetPosition().GetZ());
+
+    glRotatef(GetOrientation().GetYaw(), 0, 0, 1);
+
+    glTranslatef(5.0f, 0.0f, player_height * 0.70f);
+
+    glRotatef(this->gun_yaw, -1, 0, 0);
+    glRotatef(this->gun_roll, 0, 0, 1);
+
+    GLfloat pos[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    glLightfv(player_light, GL_POSITION, pos);
+
+    GLfloat dir[] = {0.0f, 1.0f, 0.0f};
+    glLightfv(player_light, GL_SPOT_DIRECTION, dir);
+
+    glPopMatrix();
 }
-
-
 
 void ArenaPlayer::DrawArm()
 {
@@ -160,12 +132,10 @@ void ArenaPlayer::DrawArm()
     // );
     glRotatef(
         this->gun_yaw,
-        0, 0, 1
-    );
+        0, 0, 1);
     glRotatef(
         this->gun_roll,
-        1, 0, 0
-    );
+        1, 0, 0);
     // DrawRectWithBorder(
     //     this->GetRadius()*ARM_HEIGHT_MULTIPLER,
     //     this->GetRadius()*ARM_WIDTH_MULTIPLER,
@@ -175,36 +145,77 @@ void ArenaPlayer::DrawArm()
         this->GetRadius() * ARM_HEIGHT_MULTIPLER,
         this->GetRadius() * ARM_WIDTH_MULTIPLER,
         this->GetRadius() * ARM_WIDTH_MULTIPLER,
-        this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB()
-    );
+        this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB());
     this->DrawLanternLight();
     glPopMatrix();
 }
 
+void ArenaPlayer::DrawLanternLight()
+{
+    int player_light = 0;
+    if (this->_id == PLAYER1_ID)
+    {
+        player_light = GL_LIGHT1;
+    }
+    if (this->_id == PLAYER2_ID)
+    {
+        player_light = GL_LIGHT2;
+    }
 
+    glPushMatrix();
+    glTranslatef(
+        (this->GetRadius() * ARM_WIDTH_MULTIPLER - this->GetRadius() * BULLET_RADIUS_SCALER) / 2,
+        this->GetRadius() * ARM_HEIGHT_MULTIPLER + this->GetRadius() * BULLET_RADIUS_SCALER,
+        -this->GetRadius() * ARM_WIDTH_MULTIPLER * LANTERN_Z_SCALE);
+
+    GLfloat light_center[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    glLightfv(player_light, GL_POSITION, light_center);
+
+    GLfloat light_dir[] = {0.0f, 1.0f, 0.0f, 1.0f};
+    glLightfv(player_light, GL_SPOT_DIRECTION, light_dir);
+    glPopMatrix();
+
+    glLightf(player_light, GL_SPOT_CUTOFF, 20.0f);
+
+    if (!night_mode)
+    {
+        GLfloat light_off[] = {0.0f, 0.0f, 0.0f, 1.0f};
+        glLightfv(player_light, GL_DIFFUSE, light_off);
+        glLightfv(player_light, GL_AMBIENT, light_off);
+        glLightfv(player_light, GL_SPECULAR, light_off);
+    }
+    else
+    {
+        GLfloat light_diffuse[] = {0.6f, 0.6f, 0.6f, 1.0f};
+        glLightfv(player_light, GL_DIFFUSE, light_diffuse);
+
+        GLfloat light_ambient[] = {0.15f, 0.15f, 0.15f, 1.0f};
+        glLightfv(player_light, GL_AMBIENT, light_ambient);
+
+        GLfloat light_specular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        glLightfv(player_light, GL_SPECULAR, light_specular);
+    }
+}
 
 void ArenaPlayer::DrawBody()
 {
     glPushMatrix();
-        DrawClosedCilinder(
-            this->GetRadius(),
-            player_height,
-            this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB(),
-            PLAYER_RES
-        );
-        // DrawEllipseWithBorder(
-        //     BODY_X_RADIUS_MULTIPLER*this->GetRadius(),
-        //     (BODY_X_RADIUS_MULTIPLER/4.0)*this->GetRadius(),
-        //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
-        // );
-        // DrawCircWithBorder(
-        //     this->GetRadius(),
-        //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
-        // );
+    DrawClosedCilinder(
+        this->GetRadius(),
+        player_height,
+        this->GetRGB().GetR(), this->GetRGB().GetG(), this->GetRGB().GetB(),
+        PLAYER_RES);
+    // DrawEllipseWithBorder(
+    //     BODY_X_RADIUS_MULTIPLER*this->GetRadius(),
+    //     (BODY_X_RADIUS_MULTIPLER/4.0)*this->GetRadius(),
+    //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
+    // );
+    // DrawCircWithBorder(
+    //     this->GetRadius(),
+    //     this->GetRGB().GetR(),this->GetRGB().GetG(),this->GetRGB().GetB()
+    // );
     glPopMatrix();
 }
-
-
 
 void ArenaPlayer::DrawPlayer()
 {
@@ -274,13 +285,8 @@ void ArenaPlayer::DrawPlayer()
 
         glTranslatef(MUZZLE_X, MUZZLE_Y, MUZZLE_Z);
 
-        glPushMatrix();
+        // glPushMatrix();
 
-        glTranslatef(0.0f, 0.0f, -1.0f);
-
-        this->DrawLanternLight();
-
-        glPopMatrix();
         glPopMatrix();
         glPopMatrix();
     }
@@ -302,8 +308,6 @@ void ArenaPlayer::DrawPlayer()
     glPopMatrix();
 }
 
-
-
 bool ArenaPlayer::IsMoving()
 {
     return (
@@ -312,8 +316,6 @@ bool ArenaPlayer::IsMoving()
             this->GetPosition().GetZ() - this->last_animation_attempt_position.GetZ() !=
         0);
 }
-
-
 
 void ArenaPlayer::Animate()
 {
@@ -336,8 +338,6 @@ void ArenaPlayer::Animate()
 }
 
 //----------Interaction------------//
-
-
 
 void ArenaPlayer::Move(
     CircularArena &arena,
@@ -363,8 +363,6 @@ void ArenaPlayer::Move(
     }
 }
 
-
-
 void ArenaPlayer::Rotate(GLdouble timeDiference)
 {
     this->GetOrientation().SetYaw(this->GetOrientation().GetYaw() + PLAYER_ROTATIONAL_SPEED * timeDiference);
@@ -382,8 +380,6 @@ void ArenaPlayer::Rotate(GLdouble timeDiference)
     this->GetVelocity().SetVy(-PLAYER_SPEED * this->direction.GetY());
 }
 
-
-
 void ArenaPlayer::RotateGunYaw(GLdouble timeDiference)
 {
     this->gun_yaw += GUN_ROTATIONAL_SPEED * timeDiference;
@@ -394,8 +390,6 @@ void ArenaPlayer::RotateGunYaw(GLdouble timeDiference)
     // printf("gun_yaw %3.f\n",gun_yaw);
 }
 
-
-
 void ArenaPlayer::RotateGunRoll(GLdouble timeDiference)
 {
     this->gun_roll += GUN_ROTATIONAL_SPEED * timeDiference;
@@ -405,8 +399,6 @@ void ArenaPlayer::RotateGunRoll(GLdouble timeDiference)
         this->gun_roll = -45.0;
     // printf("gun_yaw %3.f\n",gun_yaw);
 }
-
-
 
 void ArenaPlayer::Shoot()
 {
@@ -452,7 +444,7 @@ void ArenaPlayer::Shoot()
         float correcaoPulso = 15.0f;
 
         if (mov == g_movWalking)
-        {           
+        {
             correcaoPulso = -30.0f;
         }
         glRotatef(correcaoPulso, 0, 1, 0);
@@ -467,8 +459,7 @@ void ArenaPlayer::Shoot()
         glTranslatef(
             this->GetRadius(),
             0,
-            player_height
-        );
+            player_height);
         glRotatef(
             this->gun_yaw,
             0, 0, 1);
@@ -479,8 +470,7 @@ void ArenaPlayer::Shoot()
         glTranslatef(
             (this->GetRadius() * ARM_WIDTH_MULTIPLER - this->GetRadius() * BULLET_RADIUS_SCALER),
             this->GetRadius() * ARM_HEIGHT_MULTIPLER + this->GetRadius() * BULLET_RADIUS_SCALER,
-            -this->GetRadius() * ARM_WIDTH_MULTIPLER + this->GetRadius() * BULLET_RADIUS_SCALER
-        );
+            -this->GetRadius() * ARM_WIDTH_MULTIPLER + this->GetRadius() * BULLET_RADIUS_SCALER);
         // this->GetRadius() * ARM_HEIGHT_MULTIPLER,
         // this->GetRadius() * ARM_WIDTH_MULTIPLER,
         // this->GetRadius() * ARM_WIDTH_MULTIPLER,
@@ -515,8 +505,6 @@ void ArenaPlayer::Shoot()
     glPopMatrix();
 }
 
-
-
 void ArenaPlayer::IncreaseHeight(GLdouble timeDiference, int jump_button_status)
 {
     // printf("passe aqui 0\n");
@@ -537,8 +525,6 @@ void ArenaPlayer::IncreaseHeight(GLdouble timeDiference, int jump_button_status)
         this->jump_decay = true; // Ativa a queda se a altura de pulo máximo é atinginda
     }
 }
-
-
 
 void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
 {
@@ -579,8 +565,6 @@ void ArenaPlayer::DecreaseHeight(GLdouble timeDiference, ArenaPlayer player)
     }
 }
 
-
-
 void ArenaPlayer::UpdateDecayType(
     CircularArena &arena,
     std::vector<CircularObstacle> &obstacles_vec,
@@ -612,15 +596,11 @@ double ArenaPlayer::SquareDistanceTo(double x, double y)
     return (dx * dx + dy * dy);
 }
 
-
-
 bool ArenaPlayer::InArena(CircularArena &arena)
 {
     return (
         this->SquareDistanceTo(arena.GetPosition().GetX(), arena.GetPosition().GetY()) <= arena.GetRadius() * arena.GetRadius());
 }
-
-
 
 bool ArenaPlayer::ArenaCollision(CircularArena &arena)
 {
@@ -638,8 +618,6 @@ bool ArenaPlayer::ArenaCollision(CircularArena &arena)
     }
     return false;
 }
-
-
 
 // Obstacles should only exist inside the Arena
 bool ArenaPlayer::ObstacleCollision(CircularArena &arena, std::vector<CircularObstacle> &obstacles_vec)
@@ -674,8 +652,6 @@ bool ArenaPlayer::ObstacleCollision(CircularArena &arena, std::vector<CircularOb
     this->on_obstacle = false;
     return false;
 }
-
-
 
 bool ArenaPlayer::PlayerCollision(CircularArena &arena, std::vector<ArenaPlayer> &players_vec)
 {
@@ -714,8 +690,6 @@ bool ArenaPlayer::PlayerCollision(CircularArena &arena, std::vector<ArenaPlayer>
     this->on_player = false;
     return false;
 }
-
-
 
 void ArenaPlayer::UpdateSoldadoAnim(double dtMs, bool andando)
 {
