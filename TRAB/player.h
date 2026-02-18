@@ -21,6 +21,10 @@
 #define PLAYER_HEALTH 3
 
 extern double player_height;
+extern float g_gunCamBack;
+extern float g_gunCamUp;
+extern float g_gunCamRight;
+
 #define OBSTACLE_HEIGHT_SCALE 1.0
 #define MAX_JUMP_HEIGHT_SCALE 2.0
 #define PLAYER_RES 10
@@ -92,8 +96,8 @@ public:
     void Animate();
     void DrawLanternLight();
     void UpdateLanternLight();
-        // Player interaction -> Moving,Rotating and Shooting
-        void Rotate(GLdouble timeDiference);
+    // Player interaction -> Moving,Rotating and Shooting
+    void Rotate(GLdouble timeDiference);
     void RotateGunYaw(GLdouble timeDiference);
     void RotateGunRoll(GLdouble timeDiference);
     void Move(
@@ -102,6 +106,11 @@ public:
         std::vector<ArenaPlayer> &player_vec,
         GLdouble timeDiference);
     void Shoot();
+    void GetSoldierGunCameraPose(float outPos[3], float outDir[3]);
+
+
+    double GetGunYaw() const { return gun_yaw; }
+    double GetGunRoll() const { return gun_roll; }
     void GotHit() { this->health--; };
     bool IsMoving();
     void IncreaseHeight(GLdouble timeDiference, int jump_button_status);

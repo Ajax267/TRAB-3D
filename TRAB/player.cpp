@@ -25,6 +25,11 @@ static float MUZZLE_X = 0.0f;
 static float MUZZLE_Y = 30.0f;
 static float MUZZLE_Z = 0.0f;
 
+float g_soldierGunCamBack  = 10.0f;
+float g_soldierGunCamUp    = 0.0f;
+float g_soldierGunCamRight = -5.0f;
+
+
 //----------Drawing------------//
 
 void ArenaPlayer::DrawLegs()
@@ -504,6 +509,76 @@ void ArenaPlayer::Shoot()
         this->GetRadius() * BULLET_RADIUS_SCALER, this->GetId());
     glPopMatrix();
 }
+void ArenaPlayer::GetSoldierGunCameraPose(float outPos[3], float outDir[3])
+{
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glTranslatef(
+        this->GetPosition().GetX(),
+        -this->GetPosition().GetY(),
+        this->GetPosition().GetZ());
+
+    glRotatef(this->GetOrientation().GetYaw(), 0, 0, 1);
+
+    glRotatef(g_modelRotZ, 0, 0, 1);
+    glRotatef(g_modelRotX, 1, 0, 0);
+    glScalef(g_modelScale, g_modelScale, g_modelScale);
+
+    int mov = this->GetSoldadoMov();
+    int frame = this->GetSoldadoFrame();
+    if (mov < 0)
+    {
+        mov = g_movIdle;
+        frame = 0;
+    }
+
+    mesh &m = g_soldado.vecMeshes[mov][frame];
+
+    float upx = 0, upy = 0, upz = 1;
+    if (IDX_HAND_UP >= 0)
+    {
+        upx = m.vertsPos[IDX_HAND_UP].x - m.vertsPos[IDX_HAND_POS].x;
+        upy = m.vertsPos[IDX_HAND_UP].y - m.vertsPos[IDX_HAND_POS].y;
+        upz = m.vertsPos[IDX_HAND_UP].z - m.vertsPos[IDX_HAND_POS].z;
+    }
+
+    ChangeCoordSys(
+        m.vertsPos[IDX_HAND_AIM].x, m.vertsPos[IDX_HAND_AIM].y, m.vertsPos[IDX_HAND_AIM].z,
+        m.vertsPos[IDX_HAND_POS].x, m.vertsPos[IDX_HAND_POS].y, m.vertsPos[IDX_HAND_POS].z,
+        upx, upy, upz);
+
+    float correcaoPulso = 15.0f;
+    if (mov == g_movWalking) correcaoPulso = -30.0f;
+
+    glRotatef(correcaoPulso, 0, 1, 0);
+
+    glRotatef(this->gun_yaw,  -1, 0, 0);
+    glRotatef(this->gun_roll,  0, 0, 1);
+
+    // vai pro cano
+    glTranslatef(MUZZLE_X, MUZZLE_Y, MUZZLE_Z);
+
+    glTranslatef(g_soldierGunCamRight, -g_soldierGunCamBack, g_soldierGunCamUp);
+
+    GLfloat mv[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, mv);
+
+    outPos[0] = mv[12];
+    outPos[1] = mv[13];
+    outPos[2] = mv[14];
+
+    outDir[0] = mv[4];
+    outDir[1] = mv[5];
+    outDir[2] = mv[6];
+
+
+    glPopMatrix();
+}
+
+
 
 void ArenaPlayer::IncreaseHeight(GLdouble timeDiference, int jump_button_status)
 {
@@ -720,4 +795,6 @@ void ArenaPlayer::UpdateSoldadoAnim(double dtMs, bool andando)
             _soldadoFrame = 0;
         }
     }
+
+    
 }
