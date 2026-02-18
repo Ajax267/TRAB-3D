@@ -46,9 +46,9 @@ C -> Câmera em Primeira Pessoa
 
 B -> Câmera em Terceira Pessoa
 
-+ -> Diminuir Zoom da Câmera em Terceira Pessoa
+'+' -> Diminuir Zoom da Câmera em Terceira Pessoa
 
-- -> Aumentar Zoom da Câmera em Terceira Pessoa
+'-' -> Aumentar Zoom da Câmera em Terceira Pessoa
 
 V -> Câmera na Arma
 
