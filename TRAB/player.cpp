@@ -17,6 +17,7 @@ static const int IDX_HAND_POS = 9263;
 static const int IDX_HAND_AIM = 8480;
 static const int IDX_HAND_UP = -1;
 static const int IDX_HAND_SIDE = 8133;
+static const int IDX_EYE_POS = 21913;
 
 extern bool night_mode;
 
@@ -255,7 +256,8 @@ void ArenaPlayer::DrawPlayer()
         ChangeCoordSys(
             m.vertsPos[IDX_HAND_AIM].x, m.vertsPos[IDX_HAND_AIM].y, m.vertsPos[IDX_HAND_AIM].z,
             m.vertsPos[IDX_HAND_POS].x, m.vertsPos[IDX_HAND_POS].y, m.vertsPos[IDX_HAND_POS].z,
-            upx, upy, upz);
+            upx, upy, upz
+        );
 
         // sweet spot da rotação
         float correcaoPulso = 15.0f;
@@ -333,6 +335,57 @@ void ArenaPlayer::Animate()
     }
     else
         this->SetMovingStatus(false);
+}
+
+
+
+pos ArenaPlayer::GetEyePos()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+        glTranslatef(this->GetPosition().GetX(), -this->GetPosition().GetY(), this->GetPosition().GetZ());
+        glRotatef(this->GetOrientation().GetYaw(), 0, 0, 1);
+        glRotatef(g_modelRotZ, 0, 0, 1);
+        glRotatef(g_modelRotX, 1, 0, 0);
+        glScalef(g_modelScale, g_modelScale, g_modelScale);
+        int mov = this->GetSoldadoMov();
+        int frame = this->GetSoldadoFrame();
+
+        if (mov < 0)
+        {
+            mov = g_movIdle;
+            frame = 0;
+        }
+
+        mesh &m = g_soldado.vecMeshes[mov][frame];
+        // float upx = 0, upy = 0, upz = 1;
+        pos v = m.vertsPos[IDX_EYE_POS];
+        // float normalized[3]= {v.x,v.y,v.z};
+        // normalize_3d(normalized);
+        // ChangeCoordSys(
+        //     m.vertsPos[IDX_EYE_POS].x, m.vertsPos[IDX_EYE_POS].y, m.vertsPos[IDX_EYE_POS].z,
+        //     m.vertsPos[IDX_EYE_POS].x + normalized[0], m.vertsPos[IDX_EYE_POS].y + normalized[1], m.vertsPos[IDX_EYE_POS].z + normalized[2],
+        //     upx, upy, upz
+        // );
+
+        // float px = m.vertsPos[IDX_EYE_POS].x;
+        // float py = m.vertsPos[IDX_EYE_POS].y;
+        // float pz = m.vertsPos[IDX_EYE_POS].z;
+
+        // GLfloat modelview_matrix[16];
+        // glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
+
+        // float m_x = modelview_matrix[0]*px + modelview_matrix[1]*py + modelview_matrix[2]*pz + modelview_matrix[12];
+        // float m_y = modelview_matrix[4]*px + modelview_matrix[5]*py + modelview_matrix[6]*pz + modelview_matrix[13];
+        // float m_z = modelview_matrix[8]*px + modelview_matrix[9]*py + modelview_matrix[10]*pz + modelview_matrix[14];
+
+        // v.x = m_x;
+        // v.y = m_y;
+        // v.z = m_z;
+        
+        glPopMatrix();
+        return v;
+
 }
 
 //----------Interaction------------//

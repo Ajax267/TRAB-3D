@@ -5,6 +5,7 @@
 #include "arena.h"
 #include "arena_obstacles.h"
 #include "bullet.h"
+#include "objloader.h"
 
 #include <vector>
 #include <string>
@@ -129,6 +130,7 @@ class ArenaPlayer : public CircularEntityDefinition
         std::vector<Bullet>& GetBulletVec() { return this->bullet_vec; };
         short GetLastLeg() {return this->_last_leg_id;};
         void SetCurrentLeg(short leg_id) {this->_last_leg_id = leg_id;};
+        pos GetEyePos();
 
         const short& GetHealth() const {return this->health;};
         void SetHealth(short health) {this->health=health;};

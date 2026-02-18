@@ -240,10 +240,23 @@ void init_player_eye_camera_coords(int player_id)
     }
     else
     {
+        //caso de errado
         float offset =  g_players[player_id - 1].GetRadius() * 0.75;
         camera_coords[0] = g_players[player_id - 1].GetPosition().GetX() + offset * g_players[player_id - 1].GetDirection().GetY();
         camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY() + offset * g_players[player_id - 1].GetDirection().GetX();
-        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerEyeOffset();  
+        camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + PlayerEyeOffset(); 
+
+        // pos v = g_players[player_id - 1].GetEyePos();
+
+
+        // std::cout << "EyePos -> x: " << v.x
+        //         << "  y: " << v.y
+        //         << "  z: " << v.z
+        //         << std::endl;
+        // camera_coords[0] = g_players[player_id - 1].GetPosition().GetX() - v.z; //+ v.x * g_modelScale;
+        // camera_coords[1] = -g_players[player_id - 1].GetPosition().GetY() - v.x ; //+ v.y * g_modelScale;
+        // camera_coords[2] = g_players[player_id - 1].GetPosition().GetZ() + v.y; //- v.z * g_modelScale; // PlayerEyeOffset(); 
+       
     }
 }
 
@@ -903,15 +916,6 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
                 else if (camera_type_num == GUN_CAMERA)
                 {
                     init_player_gun_camera_coords(player_id);
-                    // gluLookAt(
-                    //     camera_coords[0],
-                    //     camera_coords[1],
-                    //     camera_coords[2] + player_height,
-                    //     camera_coords[0] - g_players[player_id-1].GetDirection().GetX(), 
-                    //     camera_coords[1] + g_players[player_id-1].GetDirection().GetY(),
-                    //     camera_coords[2] + player_height,
-                    //     camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
-                    // ); 
                     gluLookAt(
                     camera_coords[0],
                     camera_coords[1],
@@ -921,6 +925,18 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
                     camera_coords[2],
                     camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
                     );   
+                    // else
+                    // {
+                    //     gluLookAt(
+                    //     camera_coords[0],
+                    //     camera_coords[1],
+                    //     camera_coords[2],
+                    //     camera_coords[0] + g_players[player_id - 1].GetDirection().GetY(),
+                    //     camera_coords[1] + g_players[player_id - 1].GetDirection().GetX(),
+                    //     camera_coords[2],
+                    //     camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
+                    //     );  
+                    // }
                 }
                 else if (camera_type_num == THIRD_PERSON_CAMERA)
                 {
