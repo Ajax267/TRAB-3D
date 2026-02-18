@@ -1,4 +1,0 @@
-[ZoneTransfer]
-ZoneId=3
-ReferrerUrl=https://cloudconvert.com/
-HostUrl=https://eu-central.storage.cloudconvert.com/tasks/753d4697-00b6-4174-b5b0-289ed3ea655d/wall_brick_sand_center.bmp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cloudconvert-production%2F20260216%2Ffra%2Fs3%2Faws4_request&X-Amz-Date=20260216T214920Z&X-Amz-Expires=86400&X-Amz-Signature=b8d011d55cf321a50e12cec558f5b407a50eb0e4ec57bff18018adca41db133f&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3D%22wall_brick_sand_center.bmp%22&response-content-type=image%2Fbmp&x-id=GetObject
