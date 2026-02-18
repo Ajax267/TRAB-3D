@@ -120,7 +120,7 @@ float camThirdPersonPlayer2XYAngle = 0;
 #define GUN_CAMERA 1
 #define THIRD_PERSON_CAMERA 2
 #define SPECTATOR_CAMERA 3
-#define CAMERA_THIRD_PERSON_START_DISTANCE 30
+#define CAMERA_THIRD_PERSON_START_DISTANCE 90
 #define CAMERA_THIRD_PERSON_ZOOM_DELTA 0.2
 #define SPECTATOR_CAMERA_SPEED 100
 float camThirdPersonZoom = CAMERA_THIRD_PERSON_START_DISTANCE;
@@ -211,7 +211,7 @@ void changeCameraType(int camera_type_num)
     if (camera_type_num == EYE_CAMERA)
         changeCamera(start_angle, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
     else if (camera_type_num == GUN_CAMERA)
-        changeCamera(90, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 1, g_arena.GetRadius() * 2);
+        changeCamera(90, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 1, g_arena.GetRadius() * 3);
     else if (camera_type_num == THIRD_PERSON_CAMERA)
         changeCamera(90, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 1, g_arena.GetRadius() * 2);
     else if (camera_type_num == SPECTATOR_CAMERA)
@@ -320,11 +320,23 @@ void init_third_person_camera_direction_vector(void)
     // camera_coords[1] - CAMERA_THIRD_PERSON_START_DISTANCE * (g_players[player_id-1].GetDirection().GetY()) * sin(camThirdPersonXZAngle*M_PI/180)*cos((camThirdPersonXYAngle*M_PI/180)),
     // camera_coords[2] + PLAYER_HEIGHT + CAMERA_THIRD_PERSON_START_DISTANCE *cos(camThirdPersonXZAngle*M_PI/180)*cos((camThirdPersonXYAngle*M_PI/180)),
 
-    camThirdPersonPlayer1XYAngle = asin(g_players[PLAYER1_ID - 1].GetDirection().GetX()) * 180.0 / M_PI;
-    camThirdPersonPlayer1XZAngle = atan2(-(g_players[PLAYER1_ID - 1].GetDirection().GetY()), player_height) * 180.0 / M_PI;
+    // camThirdPersonPlayer1XYAngle = asin(g_players[PLAYER1_ID - 1].GetDirection().GetY()) * 180.0 / M_PI;
+    // camThirdPersonPlayer1XZAngle = atan2(-(g_players[PLAYER1_ID - 1].GetDirection().GetX()), player_height) * 180.0 / M_PI;
+    // camThirdPersonPlayer1XZAngle+= 90.0;
 
-    camThirdPersonPlayer2XYAngle = asin(g_players[PLAYER2_ID - 1].GetDirection().GetX()) * 180.0 / M_PI;
-    camThirdPersonPlayer2XZAngle = atan2(-(g_players[PLAYER2_ID - 1].GetDirection().GetY()), player_height) * 180.0 / M_PI;
+    // camThirdPersonPlayer2XYAngle = asin(g_players[PLAYER2_ID - 1].GetDirection().GetY()) * 180.0 / M_PI;
+    // camThirdPersonPlayer2XZAngle = atan2(-(g_players[PLAYER2_ID - 1].GetDirection().GetX()), player_height) * 180.0 / M_PI;
+
+
+    // P1 XY: -150.043 | P1 XZ: 188.409
+    // P2 XY: 150.043 | P2 XZ: -8.4091
+    // Professor pediu
+    camThirdPersonPlayer1XYAngle = -150.0;
+    camThirdPersonPlayer1XZAngle = 188.0;
+    camThirdPersonPlayer2XYAngle = 150.0;
+    camThirdPersonPlayer2XZAngle = -188.0;
+
+
 }
 
 /**
@@ -378,6 +390,13 @@ void globalmouseMotion(int x, int y)
         camThirdPersonPlayer1XYAngle += (gCurrentMouseY - gPastMouseY) * MOUSE_SENSITIVY / 2;
         camThirdPersonPlayer2XZAngle += (gCurrentMouseX - gPastMouseX) * MOUSE_SENSITIVY / 2;
         camThirdPersonPlayer2XYAngle -= (gCurrentMouseY - gPastMouseY) * MOUSE_SENSITIVY / 2;
+
+        // std::cout << "---- THIRD PERSON ANGLES ----" << std::endl;
+        // std::cout << "P1 XY: " << camThirdPersonPlayer1XYAngle
+        //         << " | P1 XZ: " << camThirdPersonPlayer1XZAngle << std::endl;
+        // std::cout << "P2 XY: " << camThirdPersonPlayer2XYAngle
+        //         << " | P2 XZ: " << camThirdPersonPlayer2XZAngle << std::endl;
+        // std::cout << "-----------------------------" << std::endl;
     }
 
     glutPostRedisplay();
@@ -1236,8 +1255,8 @@ void keyPress(unsigned char key, int x, int y)
         {
             camThirdPersonZoom += CAMERA_THIRD_PERSON_ZOOM_DELTA;
 
-            if (camThirdPersonZoom >= 90.0)
-                camThirdPersonZoom = 90.0;
+            if (camThirdPersonZoom >= 150.0)
+                camThirdPersonZoom = 150.0;
         }
         break;
 
