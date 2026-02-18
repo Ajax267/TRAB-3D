@@ -209,13 +209,19 @@ void changeCameraType(int camera_type_num)
 {
 
     if (camera_type_num == EYE_CAMERA)
-        changeCamera(start_angle, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-    else if (camera_type_num == GUN_CAMERA)
-        changeCamera(90, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 1, g_arena.GetRadius() * 3);
-    else if (camera_type_num == THIRD_PERSON_CAMERA)
-        changeCamera(90, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 1, g_arena.GetRadius() * 2);
-    else if (camera_type_num == SPECTATOR_CAMERA)
-        changeCamera(start_angle, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+        if (!g_drawSoldado)
+        {
+            changeCamera(start_angle, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+        }
+        else{
+           changeCamera(start_angle, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT),15); 
+        }
+        else if (camera_type_num == GUN_CAMERA)
+            changeCamera(90, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 1, g_arena.GetRadius() * 3);
+        else if (camera_type_num == THIRD_PERSON_CAMERA)
+            changeCamera(90, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 1, g_arena.GetRadius() * 2);
+        else if (camera_type_num == SPECTATOR_CAMERA)
+            changeCamera(start_angle, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 }
 
 /**
@@ -327,7 +333,6 @@ void init_third_person_camera_direction_vector(void)
     // camThirdPersonPlayer2XYAngle = asin(g_players[PLAYER2_ID - 1].GetDirection().GetY()) * 180.0 / M_PI;
     // camThirdPersonPlayer2XZAngle = atan2(-(g_players[PLAYER2_ID - 1].GetDirection().GetX()), player_height) * 180.0 / M_PI;
 
-
     // P1 XY: -150.043 | P1 XZ: 188.409
     // P2 XY: 150.043 | P2 XZ: -8.4091
     // Professor pediu
@@ -335,8 +340,6 @@ void init_third_person_camera_direction_vector(void)
     camThirdPersonPlayer1XZAngle = 188.0;
     camThirdPersonPlayer2XYAngle = 150.0;
     camThirdPersonPlayer2XZAngle = -188.0;
-
-
 }
 
 /**
@@ -869,24 +872,29 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
             }
             else if (camera_type_num == GUN_CAMERA)
             {
-                init_player_gun_camera_coords(player_id);
-                // gluLookAt(
-                //     camera_coords[0],
-                //     camera_coords[1],
-                //     camera_coords[2] + player_height,
-                //     camera_coords[0] - g_players[player_id-1].GetDirection().GetX(),
-                //     camera_coords[1] + g_players[player_id-1].GetDirection().GetY(),
-                //     camera_coords[2] + player_height,
-                //     camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]
-                // );
-                gluLookAt(
-                    camera_coords[0],
-                    camera_coords[1],
-                    camera_coords[2],
-                    camera_coords[0] - g_players[player_id - 1].GetDirection().GetX(),
-                    camera_coords[1] + g_players[player_id - 1].GetDirection().GetY(),
-                    camera_coords[2],
-                    camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+                if (g_drawSoldado)
+                {
+                    float pos[3], dir[3];
+                    g_players[player_id - 1].GetSoldierGunCameraPose(pos, dir);
+
+                    gluLookAt(
+                        pos[0], pos[1], pos[2],
+                        pos[0] + dir[0], pos[1] + dir[1], pos[2] + dir[2],
+                        0.0f, 0.0f, 1.0f);
+                }
+                else
+                {
+                    init_player_gun_camera_coords(player_id);
+
+                    gluLookAt(
+                        camera_coords[0],
+                        camera_coords[1],
+                        camera_coords[2],
+                        camera_coords[0] - g_players[player_id - 1].GetDirection().GetX(),
+                        camera_coords[1] + g_players[player_id - 1].GetDirection().GetY(),
+                        camera_coords[2],
+                        camera_up_vec[0], camera_up_vec[1], camera_up_vec[2]);
+                }
             }
             else if (camera_type_num == THIRD_PERSON_CAMERA)
             {
@@ -987,7 +995,6 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
 
         g_players[0].UpdateLanternLight();
         g_players[1].UpdateLanternLight();
-
     }
     else
     {
@@ -1026,8 +1033,6 @@ void renderScene(int player_id, bool fixed_camera = false, short camera_num = -1
         else
             ImprimePlacar(-VWidth * 0.05, VHeight * 0, game_winner);
     }
-
-    
 }
 
 /**
